@@ -1,114 +1,210 @@
 import { getSnowForecast } from './weather';
+import { getSwellData } from './stormglass';
 
 const SKI_RESORTS = [
-  { name: 'Whistler', location: 'Canada', lat: 50.1163, lon: -122.9574, emoji: '🍁' },
-  { name: 'Chamonix', location: 'France', lat: 45.9237, lon: 6.8694, emoji: '🇫🇷' },
-  { name: 'Niseko', location: 'Japan', lat: 42.8042, lon: 140.6875, emoji: '🇯🇵' },
-  { name: 'Verbier', location: 'Switzerland', lat: 46.0959, lon: 7.2283, emoji: '🇨🇭' },
-  { name: 'Snowbird', location: 'Utah', lat: 40.5830, lon: -111.6556, emoji: '🇺🇸' },
+  { name: 'Whistler', location: 'Canada', lat: 50.1163, lon: -122.9574, flag: '🇨🇦' },
+  { name: 'Snowbird', location: 'Utah', lat: 40.5830, lon: -111.6556, flag: '🇺🇸' },
+  { name: 'Niseko', location: 'Japan', lat: 42.8042, lon: 140.6875, flag: '🇯🇵' },
+  { name: 'Chamonix', location: 'France', lat: 45.9237, lon: 6.8694, flag: '🇫🇷' },
+  { name: 'Verbier', location: 'Switzerland', lat: 46.0959, lon: 7.2283, flag: '🇨🇭' },
 ];
 
 const SURF_SPOTS = [
-  { name: 'Pipeline', location: 'Hawaii', lat: 21.6611, lon: -158.0539, emoji: '🌺' },
-  { name: 'Supertubes', location: 'Portugal', lat: 37.0869, lon: -8.7986, emoji: '🇵🇹' },
-  { name: 'Uluwatu', location: 'Bali', lat: -8.8291, lon: 115.0849, emoji: '🇮🇩' },
-  { name: 'Snapper Rocks', location: 'Australia', lat: -28.1631, lon: 153.5500, emoji: '🇦🇺' },
-  { name: 'Jeffreys Bay', location: 'South Africa', lat: -34.0522, lon: 26.7950, emoji: '🇿🇦' },
+  { name: 'Pipeline', location: 'Hawaii', lat: 21.6653, lon: -158.0530, flag: '🇺🇸' },
+  { name: 'Supertubes', location: 'Portugal', lat: 37.0869, lon: -8.7986, flag: '🇵🇹' },
+  { name: 'Uluwatu', location: 'Bali', lat: -8.8291, lon: 115.0849, flag: '🇮🇩' },
+  { name: 'Hossegor', location: 'France', lat: 43.6647, lon: -1.4320, flag: '🇫🇷' },
+  { name: 'Jeffreys Bay', location: 'South Africa', lat: -34.0522, lon: 26.7950, flag: '🇿🇦' },
 ];
-
-async function getSurfForecast(lat: number, lon: number) {
-  const response = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=wave_height_max,wind_speed_10m_max&timezone=auto&forecast_days=7`
-  );
-  const data = await response.json();
-  return data;
-}
 
 export default async function Home() {
   const snowForecasts = await Promise.all(
     SKI_RESORTS.map(async (resort) => {
       const data = await getSnowForecast(resort.lat, resort.lon);
-      const totalSnow = data.daily.snowfall_sum.reduce((a: number, b: number) => a + b, 0);
-      return { ...resort, totalSnow: totalSnow.toFixed(1) };
+      const totalSnowCm = data.daily.snowfall_sum.reduce((a: number, b: number) => a + b, 0);
+      const totalSnowIn = (totalSnowCm / 2.54).toFixed(1);
+      return { ...resort, totalSnowCm: totalSnowCm.toFixed(1), totalSnowIn };
     })
   );
 
   const surfForecasts = await Promise.all(
     SURF_SPOTS.map(async (spot) => {
-      const data = await getSurfForecast(spot.lat, spot.lon);
-      const avgWave = data.daily.wave_height_max
-        ? (data.daily.wave_height_max.reduce((a: number, b: number) => a + b, 0) / 7).toFixed(1)
-        : 'N/A';
-      return { ...spot, avgWave };
+      const swell = await getSwellData(spot.lat, spot.lon);
+      return { ...spot, swell };
     })
   );
 
-  const sortedSnow = snowForecasts.sort((a, b) => Number(b.totalSnow) - Number(a.totalSnow));
-  const sortedSurf = surfForecasts.sort((a, b) => Number(b.avgWave) - Number(a.avgWave));
+  const sortedSnow = snowForecasts.sort((a, b) => parseFloat(b.totalSnowCm) - parseFloat(a.totalSnowCm));
+  const sortedSurf = surfForecasts.sort((a, b) => parseFloat(b.swell?.waveHeight ?? '0') - parseFloat(a.swell?.waveHeight ?? '0'));
 
   return (
-    <main style={{ fontFamily: 'sans-serif', background: '#0a0a0a', minHeight: '100vh', color: 'white' }}>
-      <div style={{ padding: '40px 40px 20px', borderBottom: '1px solid #222' }}>
-        <h1 style={{ fontSize: '42px', fontWeight: 'bold', color: '#00d4ff', margin: 0 }}>⚡ Strike Mission</h1>
-        <p style={{ fontSize: '18px', color: '#888', marginTop: '8px' }}>
-          Real-time conditions. Last-minute trips. Go score.
-        </p>
-        <a href="/strikes" style={{
-          display: 'inline-block', marginTop: '16px', padding: '12px 24px',
-          background: '#00d4ff', color: '#000', borderRadius: '8px',
-          textDecoration: 'none', fontWeight: 'bold', fontSize: '16px'
-        }}>
-          ⚡ View Strike Missions →
-        </a>
+    <main style={{ fontFamily: "'Georgia', serif", background: '#0a0808', minHeight: '100vh', color: '#f0ebe0' }}>
+      
+      {/* NAV */}
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        background: 'linear-gradient(to bottom, rgba(10,8,8,0.95), transparent)'
+      }}>
+        <div style={{ fontSize: '22px', fontWeight: 'bold', letterSpacing: '3px', textTransform: 'uppercase', color: '#f0ebe0' }}>
+          ⚡ Strike Mission
+        </div>
+        <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+          <a href="/" style={{ color: '#f0ebe0', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>Conditions</a>
+          <a href="/strikes" style={{
+            color: '#0a0808', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px',
+            textTransform: 'uppercase', background: '#e8823a', padding: '10px 20px', borderRadius: '2px', fontWeight: 'bold'
+          }}>Strike Missions</a>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <div style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
+        <img
+          src="https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1800&q=80"
+          alt="Big wave surfing"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.45) contrast(1.1)' }}
+        />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, transparent 40%, #0a0808 100%)'
+        }}/>
+        <div style={{ position: 'absolute', bottom: '80px', left: '60px', right: '60px' }}>
+          <div style={{ fontSize: '13px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '16px' }}>
+            Real-time conditions · Last-minute trips
+          </div>
+          <h1 style={{
+            fontSize: '88px', fontWeight: 'bold', lineHeight: 1, margin: '0 0 24px',
+            letterSpacing: '-2px', color: '#f0ebe0',
+            textShadow: '0 2px 40px rgba(0,0,0,0.8)'
+          }}>
+            STRIKE<br/>MISSION
+          </h1>
+          <p style={{ fontSize: '20px', color: '#b0a898', maxWidth: '500px', lineHeight: 1.6, marginBottom: '32px' }}>
+            The world's best waves and powder — ranked by real conditions, booked in minutes.
+          </p>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <a href="/strikes" style={{
+              display: 'inline-block', padding: '16px 32px', background: '#e8823a',
+              color: '#0a0808', textDecoration: 'none', fontWeight: 'bold',
+              fontSize: '14px', letterSpacing: '2px', textTransform: 'uppercase', borderRadius: '2px'
+            }}>
+              This Week's Strikes →
+            </a>
+            <a href="#conditions" style={{
+              display: 'inline-block', padding: '16px 32px',
+              border: '1px solid rgba(240,235,224,0.3)', color: '#f0ebe0',
+              textDecoration: 'none', fontSize: '14px', letterSpacing: '2px',
+              textTransform: 'uppercase', borderRadius: '2px'
+            }}>
+              Live Conditions
+            </a>
+          </div>
+        </div>
       </div>
 
-      <div style={{ padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+      {/* CONDITIONS SECTION */}
+      <div id="conditions" style={{ padding: '80px 60px' }}>
         
-        <div>
-          <h2 style={{ color: '#00d4ff', marginBottom: '20px' }}>🎿 Best Snow This Week</h2>
-          {sortedSnow.map((resort, i) => (
-            <div key={resort.name} style={{
-              marginBottom: '12px', padding: '20px', background: '#111',
-              borderRadius: '12px', border: i === 0 ? '1px solid #00d4ff' : '1px solid #222',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        <div style={{ marginBottom: '64px' }}>
+          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
+            Live surf conditions
+          </div>
+          <h2 style={{ fontSize: '48px', fontWeight: 'bold', margin: '0 0 8px', letterSpacing: '-1px' }}>
+            🏄 Waves Right Now
+          </h2>
+          <p style={{ color: '#6b6560', fontSize: '15px' }}>Offshore wave models · Updated hourly · Heights in ft (m)</p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '2px', marginBottom: '80px' }}>
+          {sortedSurf.map((spot, i) => (
+            <div key={spot.name} style={{
+              background: i === 0 ? '#1a1410' : '#111010',
+              padding: '28px 24px',
+              borderTop: i === 0 ? '2px solid #e8823a' : '2px solid #2a2520',
+              position: 'relative'
             }}>
-              <div>
-                <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{resort.emoji} {resort.name}</div>
-                <div style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>{resort.location}</div>
+              {i === 0 && (
+                <div style={{
+                  position: 'absolute', top: '16px', right: '16px',
+                  background: '#e8823a', color: '#0a0808', fontSize: '9px',
+                  letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 8px', fontWeight: 'bold'
+                }}>
+                  Best
+                </div>
+              )}
+              <div style={{ fontSize: '22px', marginBottom: '8px' }}>{spot.flag}</div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '2px', color: '#f0ebe0' }}>{spot.name}</div>
+              <div style={{ fontSize: '12px', color: '#6b6560', marginBottom: '20px', letterSpacing: '1px', textTransform: 'uppercase' }}>{spot.location}</div>
+              <div style={{ fontSize: '36px', fontWeight: 'bold', color: i === 0 ? '#e8823a' : '#f0ebe0', lineHeight: 1 }}>
+                {spot.swell?.waveHeightFt ?? 'N/A'}<span style={{ fontSize: '16px' }}>ft</span>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '22px', fontWeight: 'bold', color: i === 0 ? '#00d4ff' : 'white' }}>
-                  {(parseFloat(resort.totalSnow) / 2.54).toFixed(1)}"
-                </div>
-                <div style={{ fontSize: '13px', color: '#555' }}>
-                  {resort.totalSnow}cm
-                </div>
-                <div style={{ fontSize: '12px', color: '#666' }}>7 day total</div>
+              <div style={{ fontSize: '13px', color: '#6b6560', marginTop: '4px' }}>
+                {spot.swell?.waveHeight ?? '—'}m · {spot.swell?.wavePeriod ?? '—'}s
               </div>
             </div>
           ))}
         </div>
 
-        <div>
-          <h2 style={{ color: '#00d4ff', marginBottom: '20px' }}>🏄 Best Surf This Week</h2>
-          {sortedSurf.map((spot, i) => (
-            <div key={spot.name} style={{
-              marginBottom: '12px', padding: '20px', background: '#111',
-              borderRadius: '12px', border: i === 0 ? '1px solid #00d4ff' : '1px solid #222',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        <div style={{ marginBottom: '64px' }}>
+          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
+            Live snow conditions
+          </div>
+          <h2 style={{ fontSize: '48px', fontWeight: 'bold', margin: '0 0 8px', letterSpacing: '-1px' }}>
+            🎿 Snow Right Now
+          </h2>
+          <p style={{ color: '#6b6560', fontSize: '15px' }}>7-day snowfall forecast · Heights in inches (cm)</p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '2px', marginBottom: '80px' }}>
+          {sortedSnow.map((resort, i) => (
+            <div key={resort.name} style={{
+              background: i === 0 ? '#1a1410' : '#111010',
+              padding: '28px 24px',
+              borderTop: i === 0 ? '2px solid #e8823a' : '2px solid #2a2520',
+              position: 'relative'
             }}>
-              <div>
-                <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{spot.emoji} {spot.name}</div>
-                <div style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>{spot.location}</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '22px', fontWeight: 'bold', color: i === 0 ? '#00d4ff' : 'white' }}>
-                  {spot.avgWave}m
+              {i === 0 && (
+                <div style={{
+                  position: 'absolute', top: '16px', right: '16px',
+                  background: '#e8823a', color: '#0a0808', fontSize: '9px',
+                  letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 8px', fontWeight: 'bold'
+                }}>
+                  Best
                 </div>
-                <div style={{ fontSize: '12px', color: '#666' }}>avg wave height</div>
+              )}
+              <div style={{ fontSize: '22px', marginBottom: '8px' }}>{resort.flag}</div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '2px', color: '#f0ebe0' }}>{resort.name}</div>
+              <div style={{ fontSize: '12px', color: '#6b6560', marginBottom: '20px', letterSpacing: '1px', textTransform: 'uppercase' }}>{resort.location}</div>
+              <div style={{ fontSize: '36px', fontWeight: 'bold', color: i === 0 ? '#e8823a' : '#f0ebe0', lineHeight: 1 }}>
+                {resort.totalSnowIn}<span style={{ fontSize: '16px' }}></span>
               </div>
+              <div style={{ fontSize: '13px', color: '#6b6560', marginTop: '4px' }}>{resort.totalSnowCm}cm · 7 days</div>
             </div>
           ))}
+        </div>
+
+        {/* CTA BANNER */}
+        <div style={{
+          background: '#1a1410', border: '1px solid #2a2520',
+          padding: '48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <div>
+            <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
+              Ready to go?
+            </div>
+            <h3 style={{ fontSize: '32px', fontWeight: 'bold', margin: 0, letterSpacing: '-1px' }}>
+              See this week's bookable strike missions
+            </h3>
+          </div>
+          <a href="/strikes" style={{
+            display: 'inline-block', padding: '18px 40px', background: '#e8823a',
+            color: '#0a0808', textDecoration: 'none', fontWeight: 'bold',
+            fontSize: '14px', letterSpacing: '2px', textTransform: 'uppercase',
+            borderRadius: '2px', whiteSpace: 'nowrap' as const
+          }}>
+            View Strikes →
+          </a>
         </div>
 
       </div>
