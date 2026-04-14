@@ -53,6 +53,13 @@ export default async function Home() {
         <p style={{ fontSize: '18px', color: '#888', marginTop: '8px' }}>
           Real-time conditions. Last-minute trips. Go score.
         </p>
+        <a href="/strikes" style={{
+          display: 'inline-block', marginTop: '16px', padding: '12px 24px',
+          background: '#00d4ff', color: '#000', borderRadius: '8px',
+          textDecoration: 'none', fontWeight: 'bold', fontSize: '16px'
+        }}>
+          ⚡ View Strike Missions →
+        </a>
       </div>
 
       <div style={{ padding: '40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
