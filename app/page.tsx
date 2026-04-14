@@ -1,5 +1,6 @@
 import { getSnowForecast } from './weather';
 import { getSwellData } from './stormglass';
+import EmailSignup from './EmailSignup';
 
 const SKI_RESORTS = [
   { name: 'Whistler', location: 'Canada', lat: 50.1163, lon: -122.9574, flag: '🇨🇦' },
@@ -182,6 +183,22 @@ export default async function Home() {
               <div style={{ fontSize: '13px', color: '#6b6560', marginTop: '4px' }}>{resort.totalSnowCm}cm · 7 days</div>
             </div>
           ))}
+        </div>
+
+        {/* EMAIL SIGNUP */}
+        <div style={{ background: '#111010', borderTop: '2px solid #e8823a', padding: '48px', marginBottom: '2px' }}>
+          <div style={{ maxWidth: '560px' }}>
+            <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
+              Don't miss a strike
+            </div>
+            <h3 style={{ fontSize: '36px', fontWeight: 'bold', margin: '0 0 12px', letterSpacing: '-1px' }}>
+              Get alerted when conditions fire
+            </h3>
+            <p style={{ color: '#6b6560', fontSize: '15px', marginBottom: '24px' }}>
+              We scan the world's best surf and ski spots daily. When something is firing, you'll be the first to know.
+            </p>
+            <EmailSignup />
+          </div>
         </div>
 
         {/* CTA BANNER */}

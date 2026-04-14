@@ -1,19 +1,18 @@
+import { SURF_SPOTS, SKI_RESORTS } from '../spots';
 import { getSwellData } from '../stormglass';
 import { getSnowForecast } from '../weather';
 
-const SURF_STRIKES = [
-  { name: 'Pipeline', location: 'Hawaii', lat: 21.6653, lon: -158.0530, price: 420, hotel: 120, flag: '🇺🇸', description: 'World class barrels on the North Shore', airportCode: 'HNL' },
-  { name: 'Supertubes', location: 'Portugal', lat: 37.0869, lon: -8.7986, price: 380, hotel: 60, flag: '🇵🇹', description: 'Powerful beach break, best in Europe', airportCode: 'FAO' },
-  { name: 'Uluwatu', location: 'Bali', lat: -8.8291, lon: 115.0849, price: 680, hotel: 35, flag: '🇮🇩', description: 'Legendary reef break at sunset', airportCode: 'DPS' },
-  { name: 'Jeffreys Bay', location: 'South Africa', lat: -34.0522, lon: 26.7950, price: 820, hotel: 45, flag: '🇿🇦', description: 'The perfect pointbreak', airportCode: 'PLZ' },
-  { name: 'Hossegor', location: 'France', lat: 43.6647, lon: -1.4320, price: 350, hotel: 80, flag: '🇫🇷', description: "Europe's surf capital", airportCode: 'BIQ' },
-];
+const SURF_STRIKES = SURF_SPOTS.map(s => ({
+  ...s,
+  price: s.flightPrice,
+  hotel: s.hotelPrice,
+}));
 
-const SNOW_STRIKES = [
-  { name: 'Whistler', location: 'Canada', lat: 50.1163, lon: -122.9574, price: 280, hotel: 150, flag: '🇨🇦', description: 'Biggest ski resort in North America', airportCode: 'YVR' },
-  { name: 'Snowbird', location: 'Utah', lat: 40.5830, lon: -111.6556, price: 180, hotel: 120, flag: '🇺🇸', description: 'Best powder in the Wasatch', airportCode: 'SLC' },
-  { name: 'Niseko', location: 'Japan', lat: 42.8042, lon: 140.6875, price: 780, hotel: 100, flag: '🇯🇵', description: 'Legendary Japanese powder', airportCode: 'CTS' },
-];
+const SNOW_STRIKES = SKI_RESORTS.map(s => ({
+  ...s,
+  price: s.flightPrice,
+  hotel: s.hotelPrice,
+}));
 
 function getWaveRating(waveHeight: string | null) {
   const h = parseFloat(waveHeight ?? '0');
@@ -149,7 +148,7 @@ export default async function StrikeMissions() {
                 <div style={{ padding: '24px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                     <div>
-                      <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#f0ebe0' }}>{spot.flag} {spot.name}</div>
+                      <a href={`/spot/${spot.slug}`} style={{ fontSize: '22px', fontWeight: 'bold', color: '#f0ebe0', textDecoration: 'none' }}>{spot.flag} {spot.name}</a>
                       <div style={{ fontSize: '12px', color: '#4a4540', letterSpacing: '2px', textTransform: 'uppercase', marginTop: '4px' }}>{spot.location}</div>
                       <div style={{ fontSize: '13px', color: '#6b6560', marginTop: '6px' }}>{spot.description}</div>
                     </div>
