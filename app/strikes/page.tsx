@@ -2,17 +2,17 @@ import { getSwellData } from '../stormglass';
 import { getSnowForecast } from '../weather';
 
 const SURF_STRIKES = [
-  { name: 'Pipeline', location: 'Hawaii', lat: 21.6653, lon: -158.0530, price: 420, hotel: 120, flag: '🌺', description: 'World class barrels on the North Shore' },
-  { name: 'Supertubes', location: 'Portugal', lat: 37.0869, lon: -8.7986, price: 380, hotel: 60, flag: '🇵🇹', description: 'Powerful beach break, best in Europe' },
-  { name: 'Uluwatu', location: 'Bali', lat: -8.8291, lon: 115.0849, price: 680, hotel: 35, flag: '🇮🇩', description: 'Legendary reef break at sunset' },
-  { name: 'Jeffreys Bay', location: 'South Africa', lat: -34.0522, lon: 26.7950, price: 820, hotel: 45, flag: '🇿🇦', description: 'The perfect pointbreak' },
-  { name: 'Hossegor', location: 'France', lat: 43.6647, lon: -1.4320, price: 350, hotel: 80, flag: '🇫🇷', description: 'Powerful beach break, Europe\'s surf capital' },
+  { name: 'Pipeline', location: 'Hawaii', lat: 21.6653, lon: -158.0530, price: 420, hotel: 120, flag: '🌺', description: 'World class barrels on the North Shore', airportCode: 'HNL' },
+  { name: 'Supertubes', location: 'Portugal', lat: 37.0869, lon: -8.7986, price: 380, hotel: 60, flag: '🇵🇹', description: 'Powerful beach break, best in Europe', airportCode: 'FAO' },
+  { name: 'Uluwatu', location: 'Bali', lat: -8.8291, lon: 115.0849, price: 680, hotel: 35, flag: '🇮🇩', description: 'Legendary reef break at sunset', airportCode: 'DPS' },
+  { name: 'Jeffreys Bay', location: 'South Africa', lat: -34.0522, lon: 26.7950, price: 820, hotel: 45, flag: '🇿🇦', description: 'The perfect pointbreak', airportCode: 'PLZ' },
+  { name: 'Hossegor', location: 'France', lat: 43.6647, lon: -1.4320, price: 350, hotel: 80, flag: '🇫🇷', description: 'Powerful beach break, Europe\'s surf capital', airportCode: 'BIQ' },
 ];
 
 const SNOW_STRIKES = [
-  { name: 'Whistler', location: 'Canada', lat: 50.1163, lon: -122.9574, price: 280, hotel: 150, flag: '🍁', description: 'Biggest ski resort in North America' },
-  { name: 'Snowbird', location: 'Utah', lat: 40.5830, lon: -111.6556, price: 180, hotel: 120, flag: '🇺🇸', description: 'Best powder in the Wasatch' },
-  { name: 'Niseko', location: 'Japan', lat: 42.8042, lon: 140.6875, price: 780, hotel: 100, flag: '🇯🇵', description: 'Legendary Japanese powder' },
+  { name: 'Whistler', location: 'Canada', lat: 50.1163, lon: -122.9574, price: 280, hotel: 150, flag: '🍁', description: 'Biggest ski resort in North America', airportCode: 'YVR' },
+  { name: 'Snowbird', location: 'Utah', lat: 40.5830, lon: -111.6556, price: 180, hotel: 120, flag: '🇺🇸', description: 'Best powder in the Wasatch', airportCode: 'SLC' },
+  { name: 'Niseko', location: 'Japan', lat: 42.8042, lon: 140.6875, price: 780, hotel: 100, flag: '🇯🇵', description: 'Legendary Japanese powder', airportCode: 'CTS' },
 ];
 
 function getWaveRating(waveHeight: string) {
@@ -29,6 +29,18 @@ function getSnowRating(totalSnow: number) {
   if (totalSnow >= 15) return { label: 'GREAT', color: '#00d4ff' };
   if (totalSnow >= 5) return { label: 'GOOD', color: '#ffaa00' };
   return { label: 'THIN', color: '#666' };
+}
+
+function getGoogleFlightsUrl(airportCode: string) {
+  const today = new Date();
+  const friday = new Date(today);
+  friday.setDate(today.getDate() + ((5 - today.getDay() + 7) % 7 || 7));
+  const sunday = new Date(friday);
+  sunday.setDate(friday.getDate() + 9);
+  
+  const fmt = (d: Date) => d.toISOString().split('T')[0].replace(/-/g, '');
+  
+  return `https://www.google.com/flights/#search;f=JFK;t=${airportCode};d=${fmt(friday)};r=${fmt(sunday)};tt=r`;
 }
 
 export default async function StrikeMissions() {
@@ -120,13 +132,17 @@ export default async function StrikeMissions() {
                   <div style={{ fontSize: '13px', color: '#666' }}>5 day trip est.</div>
                   <div style={{ fontWeight: 'bold', color: '#00d4ff' }}>~${spot.tripCost}</div>
                 </div>
-                <button style={{
-                  width: '100%', padding: '12px', background: i === 0 ? '#00d4ff' : '#1a1a1a',
-                  color: i === 0 ? '#000' : '#fff', border: i === 0 ? 'none' : '1px solid #333',
-                  borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer'
+                <a href={getGoogleFlightsUrl(spot.airportCode)} target="_blank" rel="noopener noreferrer" style={{
+                  display: 'block', width: '100%', padding: '12px',
+                  background: i === 0 ? '#00d4ff' : '#1a1a1a',
+                  color: i === 0 ? '#000' : '#fff',
+                  border: i === 0 ? 'none' : '1px solid #333',
+                  borderRadius: '8px', fontSize: '14px', fontWeight: 'bold',
+                  cursor: 'pointer', textDecoration: 'none', textAlign: 'center' as const,
+                  boxSizing: 'border-box' as const
                 }}>
-                  Book This Strike →
-                </button>
+                  Search Flights on Google →
+                </a>
               </div>
             </div>
           </div>
@@ -180,13 +196,17 @@ export default async function StrikeMissions() {
                   <div style={{ fontSize: '13px', color: '#666' }}>5 day trip est.</div>
                   <div style={{ fontWeight: 'bold', color: '#00d4ff' }}>~${resort.tripCost}</div>
                 </div>
-                <button style={{
-                  width: '100%', padding: '12px', background: i === 0 ? '#00d4ff' : '#1a1a1a',
-                  color: i === 0 ? '#000' : '#fff', border: i === 0 ? 'none' : '1px solid #333',
-                  borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer'
+                <a href={getGoogleFlightsUrl(resort.airportCode)} target="_blank" rel="noopener noreferrer" style={{
+                  display: 'block', width: '100%', padding: '12px',
+                  background: i === 0 ? '#00d4ff' : '#1a1a1a',
+                  color: i === 0 ? '#000' : '#fff',
+                  border: i === 0 ? 'none' : '1px solid #333',
+                  borderRadius: '8px', fontSize: '14px', fontWeight: 'bold',
+                  cursor: 'pointer', textDecoration: 'none', textAlign: 'center' as const,
+                  boxSizing: 'border-box' as const
                 }}>
-                  Book This Strike →
-                </button>
+                  Search Flights on Google →
+                </a>
               </div>
             </div>
           </div>
