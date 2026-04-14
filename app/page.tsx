@@ -78,7 +78,10 @@ export default async function Home() {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '22px', fontWeight: 'bold', color: i === 0 ? '#00d4ff' : 'white' }}>
-                  {resort.totalSnow} cm
+                  {(parseFloat(resort.totalSnow) / 2.54).toFixed(1)}"
+                </div>
+                <div style={{ fontSize: '13px', color: '#555' }}>
+                  {resort.totalSnow}cm
                 </div>
                 <div style={{ fontSize: '12px', color: '#666' }}>7 day total</div>
               </div>
