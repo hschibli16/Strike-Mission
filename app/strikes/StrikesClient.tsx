@@ -96,7 +96,22 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
   };
 
   return (
-    <div style={{ padding: '40px 60px' }}>
+    <>
+    <style>{`
+  .strikes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-bottom: 48px; }
+  .conditions-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin-bottom: 80px; }
+  .strikes-outer { padding: 40px 60px; }
+  .filter-row { display: flex; gap: 2px; margin-bottom: 12px; flex-wrap: wrap; }
+  .region-row { display: flex; gap: 2px; flex-wrap: wrap; }
+  @media (max-width: 768px) {
+    .strikes-grid { grid-template-columns: 1fr !important; }
+    .conditions-grid { grid-template-columns: 1fr !important; }
+    .strikes-outer { padding: 20px !important; }
+    .filter-row { gap: 6px !important; }
+    .region-row { gap: 6px !important; }
+  }
+`}</style>
+    <div className="strikes-outer">
 
       {/* SEARCH + FILTERS */}
       <div style={{ marginBottom: '40px' }}>
@@ -118,7 +133,7 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
         </div>
 
         {/* Type Filter */}
-        <div style={{ display: 'flex', gap: '2px', marginBottom: '12px' }}>
+        <div className="filter-row">
           {(['both', 'surf', 'ski'] as const).map(type => (
             <button
               key={type}
@@ -135,7 +150,7 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
         </div>
 
         {/* Region Filter */}
-        <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap' as const }}>
+        <div className="region-row">
           {Object.keys(REGIONS).map(region => (
             <button
               key={region}
@@ -165,7 +180,7 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
             <div style={{ fontSize: '13px', color: '#4a4540' }}>{filteredSurf.length} spots</div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px' }}>
+          <div className="strikes-grid">
             {filteredSurf.map((spot, i) => (
               <div key={spot.name} style={{
                 background: '#111010',
@@ -257,7 +272,7 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
             <div style={{ fontSize: '13px', color: '#4a4540' }}>{filteredSnow.length} spots</div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px' }}>
+          <div className="strikes-grid">
             {filteredSnow.map((resort, i) => (
               <div key={resort.name} style={{
                 background: '#111010',
@@ -340,5 +355,6 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
       )}
 
     </div>
+    </>
   );
 }

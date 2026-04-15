@@ -42,6 +42,20 @@ export default async function HotList() {
 
   return (
     <main style={{ fontFamily: "'Georgia', serif", background: '#0a0808', minHeight: '100vh', color: '#f0ebe0' }}>
+      <style>{`
+  .hotlist-outer { padding: 60px; }
+  .hotlist-row { display: grid; grid-template-columns: 60px 1fr auto; gap: 32px; align-items: center; padding: 28px 0; border-bottom: 1px solid #1a1510; cursor: pointer; }
+  .hotlist-rank { font-size: 48px; font-weight: bold; line-height: 1; font-family: Georgia, serif; }
+  .hotlist-name { font-size: 24px; font-weight: bold; color: #f0ebe0; }
+  .hotlist-stat { text-align: right; }
+  @media (max-width: 768px) {
+    .hotlist-outer { padding: 20px !important; }
+    .hotlist-row { grid-template-columns: 36px 1fr !important; gap: 12px !important; padding: 20px 0 !important; }
+    .hotlist-rank { font-size: 22px !important; }
+    .hotlist-name { font-size: 18px !important; }
+    .hotlist-stat { display: none !important; }
+  }
+`}</style>
       <nav style={{ padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1a1510' }}>
         <a href="/" style={{ fontSize: '18px', fontWeight: 'bold', letterSpacing: '3px', textTransform: 'uppercase', color: '#f0ebe0', textDecoration: 'none' }}>Strike Mission</a>
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
@@ -62,23 +76,23 @@ export default async function HotList() {
         </div>
       </div>
 
-      <div style={{ padding: '60px' }}>
+      <div className="hotlist-outer">
         <div style={{ marginBottom: '80px' }}>
           <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '8px' }}>Top 5 worldwide</div>
           <h2 style={{ fontSize: '44px', fontWeight: 'bold', margin: '0 0 40px', letterSpacing: '-1px' }}>Surf Strikes</h2>
           {top5Surf.map((spot, i) => (
             <a key={spot.slug} href={`/spot/${spot.slug}`} style={{ textDecoration: 'none' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr auto', gap: '32px', alignItems: 'center', padding: '28px 0', borderBottom: '1px solid #1a1510', borderTop: i === 0 ? '1px solid #1a1510' : 'none' }}>
-                <div style={{ fontSize: '48px', fontWeight: 'bold', lineHeight: 1, color: i === 0 ? '#e8823a' : '#2a2520' }}>{String(i + 1).padStart(2, '0')}</div>
+              <div className="hotlist-row" style={{ borderTop: i === 0 ? '1px solid #1a1510' : 'none' }}>
+                <div className="hotlist-rank" style={{ color: i === 0 ? '#e8823a' : '#2a2520' }}>{String(i + 1).padStart(2, '0')}</div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#f0ebe0' }}>{spot.name}</span>
+                    <span className="hotlist-name">{spot.name}</span>
                     <span style={{ background: spot.strike.color + '22', border: `1px solid ${spot.strike.color}`, color: spot.strike.color, fontSize: '10px', letterSpacing: '2px', padding: '3px 10px', fontWeight: 'bold' }}>{spot.strike.label}</span>
                   </div>
                   <div style={{ fontSize: '13px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>{spot.location}</div>
                   <div style={{ fontSize: '14px', color: '#6b6560' }}>{spot.tagline}</div>
                 </div>
-                <div style={{ textAlign: 'right' as const }}>
+                <div className="hotlist-stat">
                   <div style={{ fontSize: '32px', fontWeight: 'bold', color: i === 0 ? '#e8823a' : '#f0ebe0' }}>{spot.swell?.waveHeightFt ?? 'N/A'}<span style={{ fontSize: '16px' }}>ft</span></div>
                   <div style={{ fontSize: '12px', color: '#4a4540', marginTop: '4px' }}>{spot.swell?.waveHeight ?? '—'}m · {spot.swell?.wavePeriod ?? '—'}s</div>
                   <div style={{ fontSize: '12px', color: '#4a4540', marginTop: '4px' }}>Strike score: {spot.score}/70</div>
@@ -94,17 +108,17 @@ export default async function HotList() {
           <h2 style={{ fontSize: '44px', fontWeight: 'bold', margin: '0 0 40px', letterSpacing: '-1px' }}>Snow Strikes</h2>
           {top5Snow.map((resort, i) => (
             <a key={resort.slug} href={`/spot/${resort.slug}`} style={{ textDecoration: 'none' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr auto', gap: '32px', alignItems: 'center', padding: '28px 0', borderBottom: '1px solid #1a1510', borderTop: i === 0 ? '1px solid #1a1510' : 'none' }}>
-                <div style={{ fontSize: '48px', fontWeight: 'bold', lineHeight: 1, color: i === 0 ? '#e8823a' : '#2a2520' }}>{String(i + 1).padStart(2, '0')}</div>
+              <div className="hotlist-row" style={{ borderTop: i === 0 ? '1px solid #1a1510' : 'none' }}>
+                <div className="hotlist-rank" style={{ color: i === 0 ? '#e8823a' : '#2a2520' }}>{String(i + 1).padStart(2, '0')}</div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#f0ebe0' }}>{resort.name}</span>
+                    <span className="hotlist-name">{resort.name}</span>
                     <span style={{ background: resort.strike.color + '22', border: `1px solid ${resort.strike.color}`, color: resort.strike.color, fontSize: '10px', letterSpacing: '2px', padding: '3px 10px', fontWeight: 'bold' }}>{resort.strike.label}</span>
                   </div>
                   <div style={{ fontSize: '13px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>{resort.location}</div>
                   <div style={{ fontSize: '14px', color: '#6b6560' }}>{resort.tagline}</div>
                 </div>
-                <div style={{ textAlign: 'right' as const }}>
+                <div className="hotlist-stat">
                   <div style={{ fontSize: '32px', fontWeight: 'bold', color: i === 0 ? '#e8823a' : '#f0ebe0' }}>{resort.totalSnowIn}<span style={{ fontSize: '16px' }}>&quot;</span></div>
                   <div style={{ fontSize: '12px', color: '#4a4540', marginTop: '4px' }}>{resort.totalSnowCm}cm · 7 days</div>
                   <div style={{ fontSize: '12px', color: '#4a4540', marginTop: '4px' }}>Strike score: {resort.score}/70</div>

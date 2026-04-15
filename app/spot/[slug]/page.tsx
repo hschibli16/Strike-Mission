@@ -39,6 +39,20 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
   return (
     <main style={{ fontFamily: "'Georgia', serif", background: '#0a0808', minHeight: '100vh', color: '#f0ebe0' }}>
+      <style>{`
+  .spot-outer { padding: 60px; }
+  .spot-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 48px; }
+  .spot-hero-title { font-size: 72px; font-weight: bold; margin: 0 0 12px; letter-spacing: -2px; line-height: 1; }
+  .spot-hero-bottom { position: absolute; bottom: 48px; left: 60px; }
+  .spot-day-grid { display: grid; grid-template-columns: 100px 1fr; gap: 24px; padding: 20px 0; border-bottom: 1px solid #1a1510; }
+  @media (max-width: 768px) {
+    .spot-outer { padding: 20px !important; }
+    .spot-grid { grid-template-columns: 1fr !important; }
+    .spot-hero-title { font-size: 36px !important; letter-spacing: -1px !important; }
+    .spot-hero-bottom { bottom: 20px !important; left: 20px !important; right: 20px !important; }
+    .spot-day-grid { grid-template-columns: 80px 1fr !important; gap: 12px !important; }
+  }
+`}</style>
 
       {/* NAV */}
       <nav style={{
@@ -68,22 +82,22 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
           style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.35) contrast(1.15)' }}
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, #0a0808)' }} />
-        <div style={{ position: 'absolute', bottom: '48px', left: '60px' }}>
+        <div className="spot-hero-bottom">
           <a href="/strikes" style={{ color: '#e8823a', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>
             ← Back to Strike Missions
           </a>
           <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#6b6560', margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FlagIcon country={spot.country} size={16} /> {spot.location}
           </div>
-          <h1 style={{ fontSize: '72px', fontWeight: 'bold', margin: '0 0 12px', letterSpacing: '-2px', lineHeight: 1 }}>
+          <h1 className="spot-hero-title">
             {spot.name.toUpperCase()}
           </h1>
           <p style={{ color: '#b0a898', fontSize: '18px', margin: 0 }}>{spot.tagline}</p>
         </div>
       </div>
 
-      <div style={{ padding: '60px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '48px' }}>
+      <div className="spot-outer">
+        <div className="spot-grid">
 
           {/* LEFT COLUMN */}
           <div>
@@ -127,10 +141,7 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
               <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '8px' }}>Weekend Strike</div>
               <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 24px', letterSpacing: '-1px' }}>{spot.weekendTrip.title}</h3>
               {spot.weekendTrip.days.map((day, i) => (
-                <div key={i} style={{
-                  display: 'grid', gridTemplateColumns: '100px 1fr', gap: '24px',
-                  padding: '20px 0', borderBottom: '1px solid #1a1510'
-                }}>
+                <div key={i} className="spot-day-grid">
                   <div style={{ fontWeight: 'bold', color: '#e8823a', fontSize: '14px', letterSpacing: '1px' }}>{day.day}</div>
                   <div style={{ fontSize: '15px', lineHeight: 1.7, color: '#b0a898' }}>{day.plan}</div>
                 </div>
@@ -142,10 +153,7 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
               <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '8px' }}>Full Week Strike</div>
               <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 24px', letterSpacing: '-1px' }}>{spot.weekTrip.title}</h3>
               {spot.weekTrip.days.map((day, i) => (
-                <div key={i} style={{
-                  display: 'grid', gridTemplateColumns: '100px 1fr', gap: '24px',
-                  padding: '20px 0', borderBottom: '1px solid #1a1510'
-                }}>
+                <div key={i} className="spot-day-grid">
                   <div style={{ fontWeight: 'bold', color: '#e8823a', fontSize: '14px', letterSpacing: '1px' }}>{day.day}</div>
                   <div style={{ fontSize: '15px', lineHeight: 1.7, color: '#b0a898' }}>{day.plan}</div>
                 </div>

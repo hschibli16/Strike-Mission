@@ -43,6 +43,20 @@ export default async function Home() {
 
   return (
     <main style={{ fontFamily: "'Georgia', serif", background: '#0a0808', minHeight: '100vh', color: '#f0ebe0' }}>
+      <style>{`
+  .home-conditions-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin-bottom: 80px; }
+  .home-padding { padding: 80px 60px; }
+  .home-hero-title { font-size: 88px; font-weight: bold; line-height: 1; margin: 0 0 24px; letter-spacing: -2px; color: #f0ebe0; text-shadow: 0 2px 40px rgba(0,0,0,0.8); }
+  .home-hero-bottom { position: absolute; bottom: 80px; left: 60px; right: 60px; }
+  .home-cta-banner { background: #1a1410; border: 1px solid #2a2520; padding: 48px; display: flex; justify-content: space-between; align-items: center; }
+  @media (max-width: 768px) {
+    .home-conditions-grid { grid-template-columns: 1fr !important; }
+    .home-padding { padding: 24px 20px !important; }
+    .home-hero-title { font-size: 42px !important; letter-spacing: -1px !important; }
+    .home-hero-bottom { bottom: 24px !important; left: 20px !important; right: 20px !important; }
+    .home-cta-banner { flex-direction: column !important; gap: 20px !important; padding: 28px !important; }
+  }
+`}</style>
       
       <Ticker items={[
         { label: 'Pipeline', value: `${sortedSurf[0]?.swell?.waveHeightFt ?? 'N/A'}ft`, type: 'surf' },
@@ -90,15 +104,11 @@ export default async function Home() {
           position: 'absolute', inset: 0,
           background: 'linear-gradient(to bottom, transparent 40%, #0a0808 100%)'
         }}/>
-        <div style={{ position: 'absolute', bottom: '80px', left: '60px', right: '60px' }}>
+        <div className="home-hero-bottom">
           <div style={{ fontSize: '13px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '16px' }}>
             Real-time conditions · Last-minute trips
           </div>
-          <h1 style={{
-            fontSize: '88px', fontWeight: 'bold', lineHeight: 1, margin: '0 0 24px',
-            letterSpacing: '-2px', color: '#f0ebe0',
-            textShadow: '0 2px 40px rgba(0,0,0,0.8)'
-          }}>
+          <h1 className="home-hero-title">
             STRIKE<br/>MISSION
           </h1>
           <p style={{ fontSize: '20px', color: '#b0a898', maxWidth: '500px', lineHeight: 1.6, marginBottom: '32px' }}>
@@ -125,7 +135,7 @@ export default async function Home() {
       </div>
 
       {/* CONDITIONS SECTION */}
-      <div id="conditions" style={{ padding: '80px 60px' }}>
+      <div id="conditions" className="home-padding">
         
         <div style={{ marginBottom: '64px' }}>
           <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
@@ -137,7 +147,7 @@ export default async function Home() {
           <p style={{ color: '#6b6560', fontSize: '15px' }}>Offshore wave models · Updated hourly · Heights in ft (m)</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '2px', marginBottom: '80px' }}>
+        <div className="home-conditions-grid">
           {sortedSurf.map((spot, i) => (
             <div key={spot.name} style={{
               background: i === 0 ? '#1a1410' : '#111010',
@@ -177,7 +187,7 @@ export default async function Home() {
           <p style={{ color: '#6b6560', fontSize: '15px' }}>7-day snowfall forecast · Heights in inches (cm)</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '2px', marginBottom: '80px' }}>
+        <div className="home-conditions-grid">
           {sortedSnow.map((resort, i) => (
             <div key={resort.name} style={{
               background: i === 0 ? '#1a1410' : '#111010',
@@ -232,10 +242,7 @@ export default async function Home() {
         </div>
 
         {/* CTA BANNER */}
-        <div style={{
-          background: '#1a1410', border: '1px solid #2a2520',
-          padding: '48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-        }}>
+        <div className="home-cta-banner">
           <div>
             <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
               Ready to go?
