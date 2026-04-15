@@ -1,6 +1,7 @@
 import { ALL_SPOTS } from '../../spots';
 import { getSwellData } from '../../stormglass';
 import { getSnowForecast } from '../../weather';
+import { getSkiResortData } from '../../skiresort';
 import { FlagIcon } from '../../components/Icons';
 import MobileNav from '../../components/MobileNav';
 
@@ -27,11 +28,15 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
   if (spot.type === 'surf') {
     conditions = await getSwellData(spot.lat, spot.lon);
   } else {
-    const snow = await getSnowForecast(spot.lat, spot.lon);
+    const [snow, skiResort] = await Promise.all([
+      getSnowForecast(spot.lat, spot.lon),
+      getSkiResortData(spot.location),
+    ]);
     const totalSnowCm = snow.daily.snowfall_sum.reduce((a: number, b: number) => a + b, 0);
     conditions = {
       totalSnowCm: totalSnowCm.toFixed(1),
       totalSnowIn: (totalSnowCm / 2.54).toFixed(1),
+      skiResort,
     };
   }
 
@@ -230,22 +235,105 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                     <div style={{ fontSize: '12px', color: '#4a4540', marginTop: '4px' }}>Coming soon</div>
                   </div>
                 </div>
-                <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '12px', textAlign: 'center' as const }}>Updated every 30 mins</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                  <div style={{ fontSize: '11px', color: '#4a4540' }}>Updated every 30 mins</div>
+                  {conditions && 'confidenceScore' in conditions && conditions.confidenceScore && (
+                    <div style={{
+                      fontSize: '11px',
+                      letterSpacing: '1px',
+                      padding: '3px 8px',
+                      background: conditions.confidenceScore >= 80 ? '#4ade8022' : conditions.confidenceScore >= 60 ? '#fbbf2422' : '#6b656022',
+                      color: conditions.confidenceScore >= 80 ? '#4ade80' : conditions.confidenceScore >= 60 ? '#fbbf24' : '#6b6560',
+                      border: `1px solid ${conditions.confidenceScore >= 80 ? '#4ade80' : conditions.confidenceScore >= 60 ? '#fbbf24' : '#6b6560'}`,
+                    }}>
+                      {conditions.confidenceScore}% model confidence
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             {/* Snow Conditions */}
             {!isSurf && conditions && 'totalSnowIn' in conditions && (
               <div style={{ background: '#111010', borderTop: '2px solid #f0ebe0', padding: '24px', marginBottom: '24px' }}>
-                <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '16px' }}>Snow Forecast</div>
-                <div style={{ background: '#0a0808', padding: '16px', textAlign: 'center' as const }}>
-                  <div style={{ fontSize: '40px', fontWeight: 'bold', color: '#f0ebe0' }}>
-                    {conditions.totalSnowIn}<span style={{ fontSize: '18px' }}>"</span>
+                <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '16px' }}>Live Conditions</div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+                  <div style={{ background: '#0a0808', padding: '16px', textAlign: 'center' as const, gridColumn: 'span 2' }}>
+                    <div style={{ fontSize: '40px', fontWeight: 'bold', color: '#f0ebe0' }}>
+                      {conditions.totalSnowIn}<span style={{ fontSize: '18px' }}>"</span>
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#4a4540', marginTop: '4px' }}>{conditions.totalSnowCm}cm</div>
+                    <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>7 Day Forecast Snowfall</div>
                   </div>
-                  <div style={{ fontSize: '13px', color: '#4a4540', marginTop: '4px' }}>{conditions.totalSnowCm}cm</div>
-                  <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>7 Day Snowfall</div>
+
+                  {conditions.skiResort && (
+                    <>
+                      <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#f0ebe0' }}>
+                          {(parseFloat(conditions.skiResort.snowDepth) / 2.54).toFixed(0)}"
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '2px' }}>{conditions.skiResort.snowDepth}cm</div>
+                        <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>Snow Depth</div>
+                      </div>
+                      <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#f0ebe0' }}>
+                          {conditions.skiResort.minTempF}°F
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '2px' }}>{conditions.skiResort.minTempC}°C</div>
+                        <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>Low Temp</div>
+                      </div>
+                      <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#f0ebe0' }}>
+                          {conditions.skiResort.chanceOfSnow}%
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>Chance of Snow</div>
+                      </div>
+                      <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#f0ebe0' }}>
+                          {conditions.skiResort.windSpeedMph}<span style={{ fontSize: '12px' }}>mph</span>
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>Wind Speed</div>
+                      </div>
+                      {conditions.skiResort.freezeLevel && (
+                        <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const, gridColumn: 'span 2' }}>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#f0ebe0' }}>
+                            {Math.round(parseFloat(conditions.skiResort.freezeLevel) * 3.28084).toLocaleString()}ft
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '2px' }}>{conditions.skiResort.freezeLevel}m</div>
+                          <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>Freeze Level</div>
+                        </div>
+                      )}
+                      {conditions.skiResort.weatherDesc && (
+                        <div style={{ padding: '12px', background: '#0a0808', gridColumn: 'span 2', textAlign: 'center' as const }}>
+                          <div style={{ fontSize: '14px', color: '#b0a898' }}>{conditions.skiResort.weatherDesc}</div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-                <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '12px', textAlign: 'center' as const }}>Updated hourly</div>
+
+                <div style={{ borderTop: '1px solid #1a1510', paddingTop: '16px' }}>
+                  <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>3 Day Forecast</div>
+                  {conditions.skiResort?.forecast?.slice(0, 3).map((day: any, i: number) => {
+                    const days = ['Today', 'Tomorrow', 'Day 3'];
+                    return (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #1a1510' }}>
+                        <div style={{ fontSize: '13px', color: '#6b6560' }}>{days[i]}</div>
+                        <div style={{ fontSize: '13px', color: '#b0a898' }}>{day.desc}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ fontSize: '14px', color: '#f0ebe0' }}>{(parseFloat(day.snowfall) / 2.54).toFixed(1)}" snow</div>
+                          <div style={{ fontSize: '12px', color: '#4a4540' }}>{day.minTempF}°F</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div style={{ marginTop: '12px', padding: '10px', background: '#1a1510', textAlign: 'center' as const }}>
+                    <div style={{ fontSize: '11px', color: '#f0ebe0', letterSpacing: '2px', textTransform: 'uppercase' }}>Premium — 7 day detailed forecast</div>
+                    <div style={{ fontSize: '12px', color: '#4a4540', marginTop: '4px' }}>Coming soon</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '12px', textAlign: 'center' as const }}>Updated hourly · WorldWeatherOnline + Open-Meteo</div>
               </div>
             )}
 

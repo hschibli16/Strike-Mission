@@ -1558,6 +1558,82 @@ export const ALL_SPOTS: Spot[] = [
       "Respect the locals who surf here year-round — follow lineup etiquette and be friendly.",
     ],
   },
+  {
+    slug: 'alyeska-alaska',
+    name: 'Alyeska Resort',
+    location: 'Girdwood, Alaska',
+    country: 'USA',
+    type: 'ski',
+    lat: 60.9606,
+    lon: -149.0994,
+    airportCode: 'ANC',
+    flag: '🇺🇸',
+    tagline: 'Legendary powder and ocean views in America\'s Last Frontier',
+    description: 'Alyeska Resort offers an unparalleled Alaskan skiing experience with over 1,600 acres of terrain and jaw-dropping views of the Chugach Mountains and Turnagain Arm. Known for epic snowfall averaging 669 inches annually, this destination combines world-class steep skiing, expansive backcountry access, and the unique experience of skiing with the ocean visible below. The resort\'s dramatic 2,500-foot vertical drop and legendary spring skiing extend the season well into May.',
+    bestMonths: [2, 3, 4],
+    flightFrom: 'NYC',
+    flightPrice: 450,
+    hotelPrice: 280,
+    bestRun: 'North Face offers expert-level terrain with steep chutes, gladed tree skiing, and consistently deep powder. Access it via the Summit Tram to 3,939 feet, then drop into runs like High Traverse or Wedding Bowl for untracked pow and technical challenges requiring strong avalanche awareness.',
+    idealConditions: 'Fresh snowfall of 6-12 inches on a stable base, clear or partly cloudy skies for visibility, and temperatures between 15-25°F. Spring corn snow conditions in April-May with extended daylight hours.',
+    weekendTrip: {
+      title: 'Powder Weekend in the Chugach',
+      days: [
+        {
+          day: 'Friday',
+          plan: 'Fly into Anchorage and drive 40 minutes south on Seward Highway to Girdwood. Check into Alyeska Resort or a local lodge. Grab dinner at Jack Sprat in Girdwood and rest up for early mountain access.',
+        },
+        {
+          day: 'Saturday',
+          plan: 'First tram up at 10:30 AM to beat crowds to fresh powder on North Face. Ski hard until 2 PM, break for lunch at Seven Glaciers Restaurant accessed via tram. Afternoon laps on Headwall and Christmas Bowl. Evening soak in hotel hot tub and dinner at The Bake Shop.',
+        },
+        {
+          day: 'Sunday',
+          plan: 'Early morning powder hunt on backside terrain. Explore tree runs off Glacier Bowl Chair. Depart by 2 PM for scenic drive back to Anchorage, stopping at Beluga Point for wildlife viewing. Evening flight home or extend in Anchorage.',
+        },
+      ],
+    },
+    weekTrip: {
+      title: 'Ultimate Alaska Ski Adventure',
+      days: [
+        {
+          day: 'Day 1',
+          plan: 'Arrive in Anchorage, pick up rental car, and drive to Girdwood. Check into accommodations, explore the village, get fitted for gear if needed. Sunset dinner at Double Musky Inn (reservations required).',
+        },
+        {
+          day: 'Day 2',
+          plan: 'First full day on mountain. Orient yourself with groomers on Chairs 3 and 4, then progress to intermediate terrain. Take the Aerial Tram for lunch and panoramic views. Afternoon exploration of tree runs and gladed areas.',
+        },
+        {
+          day: 'Day 3',
+          plan: 'Advanced terrain day - North Face via tram, hit High Traverse, Headwall, and expert chutes. Hire a guide for backcountry gates if conditions permit. Pack lunch to maximize powder time. Evening aurora viewing if clear.',
+        },
+        {
+          day: 'Day 4',
+          plan: 'Cat skiing day trip with Chugach Powder Guides for untracked backcountry terrain and huge vertical. Full day guided experience with lunch included. Return exhausted but exhilarated for casual dinner in village.',
+        },
+        {
+          day: 'Day 5',
+          plan: 'Recovery day with mellow morning runs, spa treatment at resort. Afternoon excursion to Portage Glacier or Alaska Wildlife Conservation Center. Evening at Girdwood Brewing Company.',
+        },
+        {
+          day: 'Day 6',
+          plan: 'Spring skiing focus - sleep in, hit the slopes at 11 AM for perfect corn snow conditions. Ski until 5 PM with extended daylight. Consider heli-skiing add-on if budget allows. Farewell dinner at Seven Glaciers.',
+        },
+        {
+          day: 'Day 7',
+          plan: 'Final morning runs on favorite terrain. Depart mountain by noon, scenic drive to Anchorage with stops at Beluga Point and Bird Point. Visit Anchorage Museum if time permits before evening departure.',
+        },
+      ],
+    },
+    localTips: [
+      'The Aerial Tram doesn\'t start until 10:30 AM, so sleep in or warm up on lower mountain chairs first - no need for dawn patrol here.',
+      'Spring skiing (April-May) offers the best weather, longest days, and amazing corn snow - often better than midwinter conditions with better visibility.',
+      'Rent avalanche gear and consider hiring a guide for backcountry gates - the terrain is serious and weather can change rapidly in the Chugach.',
+      'Drive the Seward Highway carefully, especially in winter - it\'s spectacularly scenic but watch for ice, moose, and Dall sheep on the road.',
+      'Book Seven Glaciers restaurant for lunch via the tram - it\'s a unique fine dining experience at 2,300 feet with incredible views you can\'t get anywhere else.',
+    ],
+  },
 ];
 
 export const SURF_SPOTS = ALL_SPOTS.filter(s => s.type === 'surf');
