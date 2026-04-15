@@ -2,6 +2,7 @@ import { getSnowForecast } from './weather';
 import { getSwellData } from './stormglass';
 import EmailSignup from './EmailSignup';
 import Ticker from './components/Ticker';
+import TripFinder from './components/TripFinder';
 import { FlagIcon } from './components/Icons';
 
 const SKI_RESORTS = [
@@ -43,11 +44,28 @@ export default async function Home() {
   return (
     <main style={{ fontFamily: "'Georgia', serif", background: '#0a0808', minHeight: '100vh', color: '#f0ebe0' }}>
       
+      <Ticker items={[
+        { label: 'Pipeline', value: `${sortedSurf[0]?.swell?.waveHeightFt ?? 'N/A'}ft`, type: 'surf' },
+        { label: 'Supertubes', value: `${sortedSurf[1]?.swell?.waveHeightFt ?? 'N/A'}ft`, type: 'surf' },
+        { label: 'Hossegor', value: `${sortedSurf[2]?.swell?.waveHeightFt ?? 'N/A'}ft`, type: 'surf' },
+        { label: 'Whistler', value: `${sortedSnow[0]?.totalSnowIn ?? 'N/A'}"`, type: 'ski' },
+        { label: 'Snowbird', value: `${sortedSnow[1]?.totalSnowIn ?? 'N/A'}"`, type: 'ski' },
+        { label: 'Niseko', value: `${sortedSnow[2]?.totalSnowIn ?? 'N/A'}"`, type: 'ski' },
+      ]} />
+
       {/* NAV */}
       <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        background: 'linear-gradient(to bottom, rgba(10,8,8,0.95), transparent)'
+        position: 'sticky',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        padding: '20px 40px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        background: 'rgba(10,8,8,0.97)',
+        borderBottom: '1px solid #1a1510',
       }}>
         <img src="/logo.svg" alt="Strike Mission" style={{ height: '48px' }} />
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
@@ -60,15 +78,6 @@ export default async function Home() {
           }}>Strike Missions</a>
         </div>
       </nav>
-
-      <Ticker items={[
-        { label: 'Pipeline', value: `${sortedSurf[0]?.swell?.waveHeightFt ?? 'N/A'}ft`, type: 'surf' },
-        { label: 'Supertubes', value: `${sortedSurf[1]?.swell?.waveHeightFt ?? 'N/A'}ft`, type: 'surf' },
-        { label: 'Hossegor', value: `${sortedSurf[2]?.swell?.waveHeightFt ?? 'N/A'}ft`, type: 'surf' },
-        { label: 'Whistler', value: `${sortedSnow[0]?.totalSnowIn ?? 'N/A'}"`, type: 'ski' },
-        { label: 'Snowbird', value: `${sortedSnow[1]?.totalSnowIn ?? 'N/A'}"`, type: 'ski' },
-        { label: 'Niseko', value: `${sortedSnow[2]?.totalSnowIn ?? 'N/A'}"`, type: 'ski' },
-      ]} />
 
       {/* HERO */}
       <div style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
@@ -195,6 +204,16 @@ export default async function Home() {
             </div>
           ))}
         </div>
+
+        <div style={{ padding: '0 60px' }}>
+          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '8px' }}>Personalized for you</div>
+          <h2 style={{ fontSize: '44px', fontWeight: 'bold', margin: '0 0 24px', letterSpacing: '-1px' }}>Find your strike mission</h2>
+          <p style={{ color: '#6b6560', fontSize: '16px', marginBottom: '32px', maxWidth: '600px' }}>
+            Tell us what you are chasing and we will match you to the best trips available right now based on live conditions, your skill level, and your budget.
+          </p>
+        </div>
+
+        <TripFinder spots={[...sortedSurf.map(s => ({ ...s, type: 'surf' })), ...sortedSnow.map(s => ({ ...s, type: 'ski' }))]} />
 
         {/* EMAIL SIGNUP */}
         <div style={{ background: '#111010', borderTop: '2px solid #e8823a', padding: '48px', marginBottom: '2px' }}>

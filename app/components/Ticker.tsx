@@ -28,6 +28,7 @@ export default function Ticker({ items }: { items: TickerItem[] }) {
       display: 'flex',
       alignItems: 'center',
       position: 'relative',
+      zIndex: 50,
     }}>
       <div style={{
         display: 'inline-flex',

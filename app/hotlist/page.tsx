@@ -8,8 +8,13 @@ export default async function HotList() {
     SURF_SPOTS.map(async (spot) => {
       const swell = await getSwellData(spot.lat, spot.lon);
       const score = scoreSurfSpot({
-        waveHeight: swell?.waveHeight ?? null,
+        waveHeight: swell?.waveHeightFt ?? null,
         wavePeriod: swell?.wavePeriod ?? null,
+        swellDirection: swell?.swellDirection ?? null,
+        windDirection: swell?.windDirection ?? null,
+        windSpeed: swell?.windSpeed ?? null,
+        idealSwellDirection: spot.idealSwellDirection,
+        idealWindDirection: spot.idealWindDirection,
         bestMonths: spot.bestMonths,
         flightPrice: spot.flightPrice,
       });

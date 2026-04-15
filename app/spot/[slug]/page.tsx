@@ -158,49 +158,94 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
           <div>
 
             {/* Live Conditions */}
-            <div style={{ background: '#111010', borderTop: '2px solid #e8823a', padding: '24px', marginBottom: '24px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '16px' }}>Live Conditions</div>
-              {isSurf && conditions && 'waveHeight' in conditions ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div style={{ background: '#0a0808', padding: '16px', textAlign: 'center' as const }}>
+            {isSurf && conditions && 'waveHeight' in conditions && (
+              <div style={{ background: '#111010', borderTop: '2px solid #e8823a', padding: '24px', marginBottom: '24px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '16px' }}>Live Conditions</div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+                  <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
                     <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#e8823a' }}>
                       {conditions.waveHeightFt ?? 'N/A'}<span style={{ fontSize: '14px' }}>ft</span>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '2px' }}>{conditions.waveHeight ?? '—'}m</div>
-                    <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>Wave Height</div>
+                    <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>Wave Height</div>
                   </div>
-                  <div style={{ background: '#0a0808', padding: '16px', textAlign: 'center' as const }}>
+                  <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
                     <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#f0ebe0' }}>
                       {conditions.wavePeriod ?? 'N/A'}<span style={{ fontSize: '14px' }}>s</span>
                     </div>
-                    <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>Period</div>
+                    <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>Period</div>
                   </div>
-                  <div style={{ background: '#0a0808', padding: '16px', textAlign: 'center' as const }}>
+                  <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
                     <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#f0ebe0' }}>
-                      {conditions.windSpeed ?? 'N/A'}<span style={{ fontSize: '14px' }}>kts</span>
+                      {conditions.swellHeightFt ?? 'N/A'}<span style={{ fontSize: '14px' }}>ft</span>
                     </div>
-                    <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>Wind</div>
+                    <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>Swell</div>
                   </div>
-                  <div style={{ background: '#0a0808', padding: '16px', textAlign: 'center' as const }}>
+                  <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
                     <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#f0ebe0' }}>
-                      {conditions.swellHeight ?? 'N/A'}<span style={{ fontSize: '14px' }}>m</span>
+                      {conditions.windSpeed ?? 'N/A'}<span style={{ fontSize: '14px' }}>mph</span>
                     </div>
-                    <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>Swell</div>
+                    <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>Wind</div>
                   </div>
                 </div>
-              ) : conditions && 'totalSnowIn' in conditions ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div style={{ background: '#0a0808', padding: '16px', textAlign: 'center' as const, gridColumn: 'span 2' }}>
-                    <div style={{ fontSize: '40px', fontWeight: 'bold', color: '#e8823a' }}>
-                      {conditions.totalSnowIn}<span style={{ fontSize: '18px' }}>"</span>
+
+                {conditions.secondarySwellHeight && (
+                  <div style={{ padding: '12px', background: '#0a0808', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '11px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>Secondary Swell</div>
+                    <div style={{ fontSize: '14px', color: '#f0ebe0' }}>
+                      {conditions.secondarySwellHeight}ft @ {conditions.secondarySwellPeriod}s — {conditions.secondarySwellDirection}°
                     </div>
-                    <div style={{ fontSize: '13px', color: '#4a4540', marginTop: '4px' }}>{conditions.totalSnowCm}cm</div>
-                    <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>7 Day Snowfall</div>
+                  </div>
+                )}
+
+                {conditions.seaTemp && (
+                  <div style={{ padding: '12px', background: '#0a0808', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '11px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>Sea Temp</div>
+                    <div style={{ fontSize: '14px', color: '#f0ebe0' }}>
+                      {(parseFloat(conditions.seaTemp) * 9/5 + 32).toFixed(0)}°F ({conditions.seaTemp}°C) — {parseFloat(conditions.seaTemp) < 15 ? '5/4mm wetsuit' : parseFloat(conditions.seaTemp) < 18 ? '3/2mm wetsuit' : parseFloat(conditions.seaTemp) < 22 ? 'Spring suit' : 'Boardshorts'}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ borderTop: '1px solid #1a1510', paddingTop: '16px' }}>
+                  <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>3 Day Forecast</div>
+                  {(conditions.forecast7DayFt ?? []).slice(0, 3).map((height: string, i: number) => {
+                    const days = ['Today', 'Tomorrow', 'Day 3'];
+                    return (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #1a1510' }}>
+                        <div style={{ fontSize: '13px', color: '#6b6560' }}>{days[i]}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#f0ebe0' }}>{height}ft</div>
+                          {conditions.forecast7DayPeriod?.[i] && (
+                            <div style={{ fontSize: '12px', color: '#4a4540' }}>{conditions.forecast7DayPeriod[i].toFixed(0)}s</div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div style={{ marginTop: '12px', padding: '10px', background: '#1a1510', textAlign: 'center' as const }}>
+                    <div style={{ fontSize: '11px', color: '#e8823a', letterSpacing: '2px', textTransform: 'uppercase' }}>Premium — 16 day forecast</div>
+                    <div style={{ fontSize: '12px', color: '#4a4540', marginTop: '4px' }}>Coming soon</div>
                   </div>
                 </div>
-              ) : null}
-              <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '12px', textAlign: 'center' as const }}>Updated hourly</div>
-            </div>
+                <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '12px', textAlign: 'center' as const }}>Updated every 30 mins</div>
+              </div>
+            )}
+
+            {/* Snow Conditions */}
+            {!isSurf && conditions && 'totalSnowIn' in conditions && (
+              <div style={{ background: '#111010', borderTop: '2px solid #e8823a', padding: '24px', marginBottom: '24px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '16px' }}>Snow Forecast</div>
+                <div style={{ background: '#0a0808', padding: '16px', textAlign: 'center' as const }}>
+                  <div style={{ fontSize: '40px', fontWeight: 'bold', color: '#e8823a' }}>
+                    {conditions.totalSnowIn}<span style={{ fontSize: '18px' }}>"</span>
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#4a4540', marginTop: '4px' }}>{conditions.totalSnowCm}cm</div>
+                  <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>7 Day Snowfall</div>
+                </div>
+                <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '12px', textAlign: 'center' as const }}>Updated hourly</div>
+              </div>
+            )}
 
             {/* Best Months */}
             <div style={{ background: '#111010', padding: '24px', marginBottom: '24px' }}>
