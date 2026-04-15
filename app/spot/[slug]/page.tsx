@@ -2,6 +2,7 @@ import { ALL_SPOTS } from '../../spots';
 import { getSwellData } from '../../stormglass';
 import { getSnowForecast } from '../../weather';
 import { FlagIcon } from '../../components/Icons';
+import MobileNav from '../../components/MobileNav';
 
 function getGoogleFlightsUrl(airportCode: string) {
   const today = new Date();
@@ -59,17 +60,10 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
         padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         borderBottom: '1px solid #1a1510'
       }}>
-        <a href="/" style={{ textDecoration: 'none' }}>
-          <img src="/logo.svg" alt="Strike Mission" style={{ height: '48px' }} />
+        <a href="/" style={{ fontSize: '18px', fontWeight: 'bold', letterSpacing: '3px', textTransform: 'uppercase', color: '#f0ebe0', textDecoration: 'none' }}>
+          Strike Mission
         </a>
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
-          <a href="/" style={{ color: '#6b6560', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>Conditions</a>
-          <a href="/about" style={{ color: '#6b6560', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>About</a>
-          <a href="/strikes" style={{
-            color: '#0a0808', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px',
-            textTransform: 'uppercase', background: '#e8823a', padding: '10px 20px', borderRadius: '2px', fontWeight: 'bold'
-          }}>Strike Missions</a>
-        </div>
+        <MobileNav />
       </nav>
 
       {/* HERO */}
@@ -83,7 +77,7 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, #0a0808)' }} />
         <div className="spot-hero-bottom">
-          <a href="/strikes" style={{ color: '#e8823a', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>
+          <a href="/strikes" style={{ color: '#f0ebe0', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>
             ← Back to Strike Missions
           </a>
           <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#6b6560', margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -104,33 +98,33 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
             {/* About */}
             <div style={{ marginBottom: '48px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>About</div>
+              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>About</div>
               <p style={{ fontSize: '18px', lineHeight: 1.8, color: '#b0a898', margin: 0 }}>{spot.description}</p>
             </div>
 
             {/* Best break / run */}
-            <div style={{ background: '#111010', borderTop: '2px solid #e8823a', padding: '24px', marginBottom: '48px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
+            <div style={{ background: '#111010', borderTop: '2px solid #f0ebe0', padding: '24px', marginBottom: '48px' }}>
+              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>
                 {isSurf ? 'The Break' : 'The Mountain'}
               </div>
               <p style={{ fontSize: '16px', lineHeight: 1.7, color: '#f0ebe0', margin: '0 0 16px' }}>
                 {isSurf ? spot.bestBreak : spot.bestRun}
               </p>
               <div style={{ fontSize: '13px', color: '#6b6560' }}>
-                <span style={{ color: '#e8823a', marginRight: '8px' }}>Ideal conditions:</span>
+                <span style={{ color: '#f0ebe0', marginRight: '8px' }}>Ideal conditions:</span>
                 {spot.idealConditions}
               </div>
             </div>
 
             {/* Local Tips */}
             <div style={{ marginBottom: '48px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '20px' }}>Local Tips</div>
+              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '20px' }}>Local Tips</div>
               {spot.localTips.map((tip, i) => (
                 <div key={i} style={{
                   display: 'flex', gap: '16px', padding: '16px 0',
                   borderBottom: '1px solid #1a1510'
                 }}>
-                  <div style={{ color: '#e8823a', fontWeight: 'bold', fontSize: '14px', minWidth: '24px' }}>{i + 1}</div>
+                  <div style={{ color: '#f0ebe0', fontWeight: 'bold', fontSize: '14px', minWidth: '24px' }}>{i + 1}</div>
                   <div style={{ fontSize: '15px', lineHeight: 1.6, color: '#b0a898' }}>{tip}</div>
                 </div>
               ))}
@@ -138,11 +132,11 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
             {/* Weekend Trip */}
             <div style={{ marginBottom: '48px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '8px' }}>Weekend Strike</div>
+              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '8px' }}>Weekend Strike</div>
               <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 24px', letterSpacing: '-1px' }}>{spot.weekendTrip.title}</h3>
               {spot.weekendTrip.days.map((day, i) => (
                 <div key={i} className="spot-day-grid">
-                  <div style={{ fontWeight: 'bold', color: '#e8823a', fontSize: '14px', letterSpacing: '1px' }}>{day.day}</div>
+                  <div style={{ fontWeight: 'bold', color: '#f0ebe0', fontSize: '14px', letterSpacing: '1px' }}>{day.day}</div>
                   <div style={{ fontSize: '15px', lineHeight: 1.7, color: '#b0a898' }}>{day.plan}</div>
                 </div>
               ))}
@@ -150,11 +144,11 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
             {/* Week Trip */}
             <div>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '8px' }}>Full Week Strike</div>
+              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '8px' }}>Full Week Strike</div>
               <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 24px', letterSpacing: '-1px' }}>{spot.weekTrip.title}</h3>
               {spot.weekTrip.days.map((day, i) => (
                 <div key={i} className="spot-day-grid">
-                  <div style={{ fontWeight: 'bold', color: '#e8823a', fontSize: '14px', letterSpacing: '1px' }}>{day.day}</div>
+                  <div style={{ fontWeight: 'bold', color: '#f0ebe0', fontSize: '14px', letterSpacing: '1px' }}>{day.day}</div>
                   <div style={{ fontSize: '15px', lineHeight: 1.7, color: '#b0a898' }}>{day.plan}</div>
                 </div>
               ))}
@@ -167,12 +161,12 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
             {/* Live Conditions */}
             {isSurf && conditions && 'waveHeight' in conditions && (
-              <div style={{ background: '#111010', borderTop: '2px solid #e8823a', padding: '24px', marginBottom: '24px' }}>
-                <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '16px' }}>Live Conditions</div>
+              <div style={{ background: '#111010', borderTop: '2px solid #f0ebe0', padding: '24px', marginBottom: '24px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '16px' }}>Live Conditions</div>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
                   <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#e8823a' }}>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#f0ebe0' }}>
                       {conditions.waveHeightFt ?? 'N/A'}<span style={{ fontSize: '14px' }}>ft</span>
                     </div>
                     <div style={{ fontSize: '10px', color: '#4a4540', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '4px' }}>Wave Height</div>
@@ -216,7 +210,7 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                 )}
 
                 <div style={{ borderTop: '1px solid #1a1510', paddingTop: '16px' }}>
-                  <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>3 Day Forecast</div>
+                  <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>3 Day Forecast</div>
                   {(conditions.forecast7DayFt ?? []).slice(0, 3).map((height: string, i: number) => {
                     const days = ['Today', 'Tomorrow', 'Day 3'];
                     return (
@@ -232,7 +226,7 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                     );
                   })}
                   <div style={{ marginTop: '12px', padding: '10px', background: '#1a1510', textAlign: 'center' as const }}>
-                    <div style={{ fontSize: '11px', color: '#e8823a', letterSpacing: '2px', textTransform: 'uppercase' }}>Premium — 16 day forecast</div>
+                    <div style={{ fontSize: '11px', color: '#f0ebe0', letterSpacing: '2px', textTransform: 'uppercase' }}>Premium — 16 day forecast</div>
                     <div style={{ fontSize: '12px', color: '#4a4540', marginTop: '4px' }}>Coming soon</div>
                   </div>
                 </div>
@@ -242,10 +236,10 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
             {/* Snow Conditions */}
             {!isSurf && conditions && 'totalSnowIn' in conditions && (
-              <div style={{ background: '#111010', borderTop: '2px solid #e8823a', padding: '24px', marginBottom: '24px' }}>
-                <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '16px' }}>Snow Forecast</div>
+              <div style={{ background: '#111010', borderTop: '2px solid #f0ebe0', padding: '24px', marginBottom: '24px' }}>
+                <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '16px' }}>Snow Forecast</div>
                 <div style={{ background: '#0a0808', padding: '16px', textAlign: 'center' as const }}>
-                  <div style={{ fontSize: '40px', fontWeight: 'bold', color: '#e8823a' }}>
+                  <div style={{ fontSize: '40px', fontWeight: 'bold', color: '#f0ebe0' }}>
                     {conditions.totalSnowIn}<span style={{ fontSize: '18px' }}>"</span>
                   </div>
                   <div style={{ fontSize: '13px', color: '#4a4540', marginTop: '4px' }}>{conditions.totalSnowCm}cm</div>
@@ -257,12 +251,12 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
             {/* Best Months */}
             <div style={{ background: '#111010', padding: '24px', marginBottom: '24px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '16px' }}>Best Months</div>
+              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '16px' }}>Best Months</div>
               <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '8px' }}>
                 {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((month, i) => (
                   <div key={month} style={{
                     padding: '6px 12px', fontSize: '12px', letterSpacing: '1px',
-                    background: spot.bestMonths.includes(i + 1) ? '#e8823a' : '#1a1510',
+                    background: spot.bestMonths.includes(i + 1) ? '#f0ebe0' : '#1a1510',
                     color: spot.bestMonths.includes(i + 1) ? '#0a0808' : '#4a4540',
                     fontWeight: spot.bestMonths.includes(i + 1) ? 'bold' : 'normal',
                   }}>
@@ -274,7 +268,7 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
             {/* Trip Cost */}
             <div style={{ background: '#111010', padding: '24px', marginBottom: '24px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '16px' }}>Trip Cost Estimate</div>
+              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '16px' }}>Trip Cost Estimate</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #1a1510' }}>
                 <span style={{ fontSize: '14px', color: '#6b6560' }}>Return flights from {spot.flightFrom}</span>
                 <span style={{ fontWeight: 'bold' }}>~${spot.flightPrice}</span>
@@ -285,14 +279,14 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 0 0' }}>
                 <span style={{ fontSize: '14px', color: '#6b6560' }}>5 day trip total est.</span>
-                <span style={{ fontWeight: 'bold', color: '#e8823a', fontSize: '22px' }}>~${tripCost}</span>
+                <span style={{ fontWeight: 'bold', color: '#f0ebe0', fontSize: '22px' }}>~${tripCost}</span>
               </div>
             </div>
 
             {/* Book Button */}
             <a href={getGoogleFlightsUrl(spot.airportCode)} target="_blank" rel="noopener noreferrer" style={{
               display: 'block', width: '100%', padding: '18px',
-              background: '#e8823a', color: '#0a0808',
+              background: '#f0ebe0', color: '#0a0808',
               fontSize: '13px', fontWeight: 'bold', letterSpacing: '2px',
               textTransform: 'uppercase', textDecoration: 'none',
               textAlign: 'center' as const, boxSizing: 'border-box' as const

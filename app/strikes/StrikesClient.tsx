@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { SurferIcon, SkierIcon, FlagIcon } from '../components/Icons';
+import { WaveIcon, SnowflakeIcon, FlagIcon } from '../components/Icons';
 
 type Spot = {
   name: string;
@@ -16,7 +16,7 @@ type Spot = {
     wavePeriod: string | null;
     windSpeed: string | null;
   } | null;
-  rating: { label: string; color: string };
+  rating: { label: string; color: string; bg: string };
   tripCost: number;
   flightPrice: number;
   hotelPrice: number;
@@ -140,7 +140,7 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
               onClick={() => setActiveType(type)}
               style={{
                 ...btnBase,
-                background: activeType === type ? '#e8823a' : '#111010',
+                background: activeType === type ? '#f0ebe0' : '#111010',
                 color: activeType === type ? '#0a0808' : '#6b6560',
               }}
             >
@@ -172,9 +172,9 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
         <div style={{ marginBottom: '60px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
             <div>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase' as const, color: '#e8823a', marginBottom: '8px' }}>This week</div>
+              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase' as const, color: '#f0ebe0', marginBottom: '8px' }}>This week</div>
               <h2 style={{ fontSize: '36px', fontWeight: 'bold', margin: 0, letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <SurferIcon size={36} color="#f0ebe0" /> Surf Strikes
+                <WaveIcon size={32} color="#f0ebe0" /> Surf Strikes
               </h2>
             </div>
             <div style={{ fontSize: '13px', color: '#4a4540' }}>{filteredSurf.length} spots</div>
@@ -184,7 +184,7 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
             {filteredSurf.map((spot, i) => (
               <div key={spot.name} style={{
                 background: '#111010',
-                borderTop: i === 0 ? '2px solid #e8823a' : '2px solid #1a1510',
+                borderTop: i === 0 ? '2px solid #f0ebe0' : '2px solid #1a1510',
                 overflow: 'hidden'
               }}>
                 <div style={{ height: '180px', overflow: 'hidden', position: 'relative' }}>
@@ -195,8 +195,8 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
                   />
                   <div style={{
                     position: 'absolute', top: '16px', left: '16px',
-                    background: spot.rating.color, color: i === 0 ? '#0a0808' : '#f0ebe0',
-                    fontSize: '10px', letterSpacing: '2px', padding: '4px 10px', fontWeight: 'bold'
+                    background: spot.rating.bg, color: spot.rating.color,
+                    fontSize: '10px', letterSpacing: '2px', padding: '4px 10px', fontWeight: 'bold', whiteSpace: 'nowrap'
                   }}>
                     {spot.rating.label}
                   </div>
@@ -210,7 +210,7 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '20px' }}>
                     <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
-                      <div style={{ fontSize: '20px', fontWeight: 'bold', color: i === 0 ? '#e8823a' : '#f0ebe0' }}>
+                      <div style={{ fontSize: '20px', fontWeight: 'bold', color: i === 0 ? '#f0ebe0' : '#f0ebe0' }}>
                         {spot.swell?.waveHeightFt ?? 'N/A'}<span style={{ fontSize: '11px' }}>ft</span>
                       </div>
                       <div style={{ fontSize: '10px', color: '#4a4540', marginTop: '2px' }}>{spot.swell?.waveHeight ?? '—'}m</div>
@@ -237,13 +237,13 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '13px', color: '#4a4540' }}>5 day trip est.</span>
-                      <span style={{ fontWeight: 'bold', color: '#e8823a', fontSize: '18px' }}>~${spot.tripCost}</span>
+                      <span style={{ fontWeight: 'bold', color: '#f0ebe0', fontSize: '18px' }}>~${spot.tripCost}</span>
                     </div>
                   </div>
 
                   <a href={getGoogleFlightsUrl(spot.airportCode)} target="_blank" rel="noopener noreferrer" style={{
                     display: 'block', width: '100%', padding: '14px',
-                    background: i === 0 ? '#e8823a' : 'transparent',
+                    background: i === 0 ? '#f0ebe0' : 'transparent',
                     color: i === 0 ? '#0a0808' : '#f0ebe0',
                     border: i === 0 ? 'none' : '1px solid #2a2520',
                     fontSize: '12px', fontWeight: 'bold', letterSpacing: '2px',
@@ -264,9 +264,9 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
             <div>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase' as const, color: '#e8823a', marginBottom: '8px' }}>This week</div>
+              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase' as const, color: '#f0ebe0', marginBottom: '8px' }}>This week</div>
               <h2 style={{ fontSize: '36px', fontWeight: 'bold', margin: 0, letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <SkierIcon size={36} color="#f0ebe0" /> Snow Strikes
+                <SnowflakeIcon size={32} color="#f0ebe0" /> Snow Strikes
               </h2>
             </div>
             <div style={{ fontSize: '13px', color: '#4a4540' }}>{filteredSnow.length} spots</div>
@@ -276,7 +276,7 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
             {filteredSnow.map((resort, i) => (
               <div key={resort.name} style={{
                 background: '#111010',
-                borderTop: i === 0 ? '2px solid #e8823a' : '2px solid #1a1510',
+                borderTop: i === 0 ? '2px solid #f0ebe0' : '2px solid #1a1510',
                 overflow: 'hidden'
               }}>
                 <div style={{ height: '180px', overflow: 'hidden', position: 'relative' }}>
@@ -287,8 +287,8 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
                   />
                   <div style={{
                     position: 'absolute', top: '16px', left: '16px',
-                    background: resort.rating.color, color: i === 0 ? '#0a0808' : '#f0ebe0',
-                    fontSize: '10px', letterSpacing: '2px', padding: '4px 10px', fontWeight: 'bold'
+                    background: resort.rating.bg, color: resort.rating.color,
+                    fontSize: '10px', letterSpacing: '2px', padding: '4px 10px', fontWeight: 'bold', whiteSpace: 'nowrap'
                   }}>
                     {resort.rating.label}
                   </div>
@@ -302,7 +302,7 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
                     <div style={{ background: '#0a0808', padding: '12px', textAlign: 'center' as const }}>
-                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: i === 0 ? '#e8823a' : '#f0ebe0' }}>
+                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: i === 0 ? '#f0ebe0' : '#f0ebe0' }}>
                         {resort.totalSnowIn}<span style={{ fontSize: '13px' }}>&quot;</span>
                       </div>
                       <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '2px' }}>{resort.totalSnowCm}cm</div>
@@ -323,13 +323,13 @@ export default function StrikesClient({ surfSpots, snowSpots }: { surfSpots: Spo
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '13px', color: '#4a4540' }}>5 day trip est.</span>
-                      <span style={{ fontWeight: 'bold', color: '#e8823a', fontSize: '18px' }}>~${resort.tripCost}</span>
+                      <span style={{ fontWeight: 'bold', color: '#f0ebe0', fontSize: '18px' }}>~${resort.tripCost}</span>
                     </div>
                   </div>
 
                   <a href={getGoogleFlightsUrl(resort.airportCode)} target="_blank" rel="noopener noreferrer" style={{
                     display: 'block', width: '100%', padding: '14px',
-                    background: i === 0 ? '#e8823a' : 'transparent',
+                    background: i === 0 ? '#f0ebe0' : 'transparent',
                     color: i === 0 ? '#0a0808' : '#f0ebe0',
                     border: i === 0 ? 'none' : '1px solid #2a2520',
                     fontSize: '12px', fontWeight: 'bold', letterSpacing: '2px',

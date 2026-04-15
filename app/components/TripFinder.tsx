@@ -41,7 +41,7 @@ export default function TripFinder({ spots }: { spots: any[] }) {
 
   const btnStyle = (active: boolean) => ({
     padding: '12px 20px',
-    background: active ? '#e8823a' : '#111010',
+    background: active ? '#f0ebe0' : '#111010',
     color: active ? '#0a0808' : '#6b6560',
     border: active ? 'none' : '1px solid #2a2520',
     fontSize: '13px',
@@ -109,7 +109,7 @@ export default function TripFinder({ spots }: { spots: any[] }) {
   const steps = [
     // Step 0 - Type
     <div key={0}>
-      <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>Step 1 of 4</div>
+      <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>Step 1 of 4</div>
       <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 24px', letterSpacing: '-1px' }}>What are you chasing?</h3>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
         {(['surf', 'ski', 'both'] as const).map(t => (
@@ -122,7 +122,7 @@ export default function TripFinder({ spots }: { spots: any[] }) {
 
     // Step 1 - Skill
     <div key={1}>
-      <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>Step 2 of 4</div>
+      <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>Step 2 of 4</div>
       <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 8px', letterSpacing: '-1px' }}>Your skill level?</h3>
       <p style={{ color: '#6b6560', fontSize: '14px', marginBottom: '24px' }}>This helps us match you to the right spots</p>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
@@ -134,7 +134,7 @@ export default function TripFinder({ spots }: { spots: any[] }) {
 
     // Step 2 - Budget
     <div key={2}>
-      <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>Step 3 of 4</div>
+      <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>Step 3 of 4</div>
       <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 8px', letterSpacing: '-1px' }}>Trip budget?</h3>
       <p style={{ color: '#6b6560', fontSize: '14px', marginBottom: '24px' }}>Flights + accommodation estimate</p>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
@@ -146,7 +146,7 @@ export default function TripFinder({ spots }: { spots: any[] }) {
 
     // Step 3 - Home airport
     <div key={3}>
-      <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>Step 4 of 4</div>
+      <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>Step 4 of 4</div>
       <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 8px', letterSpacing: '-1px' }}>Where are you flying from?</h3>
       <p style={{ color: '#6b6560', fontSize: '14px', marginBottom: '24px' }}>Enter your nearest airport code</p>
       <div style={{ display: 'flex', gap: '8px' }}>
@@ -173,7 +173,7 @@ export default function TripFinder({ spots }: { spots: any[] }) {
   ];
 
   return (
-    <div style={{ background: '#111010', borderTop: '2px solid #e8823a', padding: '40px' }}>
+    <div style={{ background: '#111010', borderTop: '2px solid #f0ebe0', padding: '40px' }}>
       <div style={{ maxWidth: '700px' }}>
 
         {step < 5 && (
@@ -189,10 +189,10 @@ export default function TripFinder({ spots }: { spots: any[] }) {
 
         {step === 5 && results.length > 0 && (
           <div>
-            <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '8px' }}>Your personal strikes</div>
+            <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '8px' }}>Your personal strikes</div>
             <h3 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 24px', letterSpacing: '-1px' }}>Top 3 trips for you right now</h3>
             {results.map((r, i) => (
-              <div key={r.slug} style={{ padding: '20px', background: '#0a0808', marginBottom: '8px', display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px', alignItems: 'center', borderTop: i === 0 ? '2px solid #e8823a' : '1px solid #1a1510' }}>
+              <div key={r.slug} style={{ padding: '20px', background: '#0a0808', marginBottom: '8px', display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px', alignItems: 'center', borderTop: i === 0 ? '2px solid #f0ebe0' : '1px solid #1a1510' }}>
                 <div>
                   <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>
                     {i + 1}. {r.flag} {r.name}
@@ -200,11 +200,11 @@ export default function TripFinder({ spots }: { spots: any[] }) {
                   <div style={{ fontSize: '12px', color: '#4a4540', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>{r.location}</div>
                   <div style={{ fontSize: '13px', color: '#b0a898' }}>{r.reason}</div>
                   <div style={{ fontSize: '13px', color: '#6b6560', marginTop: '6px' }}>
-                    Est. 5 day trip: <span style={{ color: '#e8823a', fontWeight: 'bold' }}>${r.flightPrice + r.hotelPrice * 5}</span>
+                    Est. 5 day trip: <span style={{ color: '#f0ebe0', fontWeight: 'bold' }}>${r.flightPrice + r.hotelPrice * 5}</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
-                  <a href={`/spot/${r.slug}`} style={{ padding: '10px 16px', background: '#e8823a', color: '#0a0808', textDecoration: 'none', fontSize: '11px', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', textAlign: 'center' as const }}>
+                  <a href={`/spot/${r.slug}`} style={{ padding: '10px 16px', background: '#f0ebe0', color: '#0a0808', textDecoration: 'none', fontSize: '11px', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', textAlign: 'center' as const }}>
                     View Trip →
                   </a>
                   <a href={getGoogleFlightsUrl(homeAirport || 'JFK', r.airportCode)} target="_blank" rel="noopener noreferrer" style={{ padding: '10px 16px', background: 'transparent', color: '#f0ebe0', textDecoration: 'none', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', textAlign: 'center' as const, border: '1px solid #2a2520' }}>

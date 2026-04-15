@@ -3,7 +3,8 @@ import { getSwellData } from './stormglass';
 import EmailSignup from './EmailSignup';
 import Ticker from './components/Ticker';
 import TripFinder from './components/TripFinder';
-import { FlagIcon } from './components/Icons';
+import MobileNav from './components/MobileNav';
+import { FlagIcon, WaveIcon, SnowflakeIcon } from './components/Icons';
 
 const SKI_RESORTS = [
   { name: 'Whistler', location: 'Canada', country: 'Canada', lat: 50.1163, lon: -122.9574, flag: '🇨🇦' },
@@ -82,15 +83,7 @@ export default async function Home() {
         borderBottom: '1px solid #1a1510',
       }}>
         <img src="/logo.svg" alt="Strike Mission" style={{ height: '48px' }} />
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
-          <a href="/" style={{ color: '#f0ebe0', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>Conditions</a>
-          <a href="/hotlist" style={{ color: '#6b6560', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>Hot List</a>
-          <a href="/about" style={{ color: '#6b6560', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>About</a>
-          <a href="/strikes" style={{
-            color: '#0a0808', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px',
-            textTransform: 'uppercase', background: '#e8823a', padding: '10px 20px', borderRadius: '2px', fontWeight: 'bold'
-          }}>Strike Missions</a>
-        </div>
+        <MobileNav />
       </nav>
 
       {/* HERO */}
@@ -105,7 +98,7 @@ export default async function Home() {
           background: 'linear-gradient(to bottom, transparent 40%, #0a0808 100%)'
         }}/>
         <div className="home-hero-bottom">
-          <div style={{ fontSize: '13px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '16px' }}>
+          <div style={{ fontSize: '13px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '16px' }}>
             Real-time conditions · Last-minute trips
           </div>
           <h1 className="home-hero-title">
@@ -116,7 +109,7 @@ export default async function Home() {
           </p>
           <div style={{ display: 'flex', gap: '16px' }}>
             <a href="/strikes" style={{
-              display: 'inline-block', padding: '16px 32px', background: '#e8823a',
+              display: 'inline-block', padding: '16px 32px', background: '#f0ebe0',
               color: '#0a0808', textDecoration: 'none', fontWeight: 'bold',
               fontSize: '14px', letterSpacing: '2px', textTransform: 'uppercase', borderRadius: '2px'
             }}>
@@ -138,11 +131,11 @@ export default async function Home() {
       <div id="conditions" className="home-padding">
         
         <div style={{ marginBottom: '64px' }}>
-          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
+          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>
             Live surf conditions
           </div>
-          <h2 style={{ fontSize: '48px', fontWeight: 'bold', margin: '0 0 8px', letterSpacing: '-1px' }}>
-            🏄 Waves Right Now
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '48px', fontWeight: 'bold', margin: '0 0 8px', letterSpacing: '-1px' }}>
+            <WaveIcon size={40} color="#f0ebe0" /> Waves Right Now
           </h2>
           <p style={{ color: '#6b6560', fontSize: '15px' }}>Offshore wave models · Updated hourly · Heights in ft (m)</p>
         </div>
@@ -152,13 +145,13 @@ export default async function Home() {
             <div key={spot.name} style={{
               background: i === 0 ? '#1a1410' : '#111010',
               padding: '28px 24px',
-              borderTop: i === 0 ? '2px solid #e8823a' : '2px solid #2a2520',
+              borderTop: i === 0 ? '2px solid #f0ebe0' : '2px solid #2a2520',
               position: 'relative'
             }}>
               {i === 0 && (
                 <div style={{
                   position: 'absolute', top: '16px', right: '16px',
-                  background: '#e8823a', color: '#0a0808', fontSize: '9px',
+                  background: '#f0ebe0', color: '#0a0808', fontSize: '9px',
                   letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 8px', fontWeight: 'bold'
                 }}>
                   Best
@@ -167,7 +160,7 @@ export default async function Home() {
               <div style={{ fontSize: '22px', marginBottom: '8px' }}><FlagIcon country={spot.country} size={16} /></div>
               <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '2px', color: '#f0ebe0' }}>{spot.name}</div>
               <div style={{ fontSize: '12px', color: '#6b6560', marginBottom: '20px', letterSpacing: '1px', textTransform: 'uppercase' }}>{spot.location}</div>
-              <div style={{ fontSize: '36px', fontWeight: 'bold', color: i === 0 ? '#e8823a' : '#f0ebe0', lineHeight: 1 }}>
+              <div style={{ fontSize: '36px', fontWeight: 'bold', color: i === 0 ? '#f0ebe0' : '#f0ebe0', lineHeight: 1 }}>
                 {spot.swell?.waveHeightFt ?? 'N/A'}<span style={{ fontSize: '16px' }}>ft</span>
               </div>
               <div style={{ fontSize: '13px', color: '#6b6560', marginTop: '4px' }}>
@@ -178,11 +171,11 @@ export default async function Home() {
         </div>
 
         <div style={{ marginBottom: '64px' }}>
-          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
+          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>
             Live snow conditions
           </div>
-          <h2 style={{ fontSize: '48px', fontWeight: 'bold', margin: '0 0 8px', letterSpacing: '-1px' }}>
-            🎿 Snow Right Now
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '48px', fontWeight: 'bold', margin: '0 0 8px', letterSpacing: '-1px' }}>
+            <SnowflakeIcon size={40} color="#f0ebe0" /> Snow Right Now
           </h2>
           <p style={{ color: '#6b6560', fontSize: '15px' }}>7-day snowfall forecast · Heights in inches (cm)</p>
         </div>
@@ -192,13 +185,13 @@ export default async function Home() {
             <div key={resort.name} style={{
               background: i === 0 ? '#1a1410' : '#111010',
               padding: '28px 24px',
-              borderTop: i === 0 ? '2px solid #e8823a' : '2px solid #2a2520',
+              borderTop: i === 0 ? '2px solid #f0ebe0' : '2px solid #2a2520',
               position: 'relative'
             }}>
               {i === 0 && (
                 <div style={{
                   position: 'absolute', top: '16px', right: '16px',
-                  background: '#e8823a', color: '#0a0808', fontSize: '9px',
+                  background: '#f0ebe0', color: '#0a0808', fontSize: '9px',
                   letterSpacing: '2px', textTransform: 'uppercase', padding: '3px 8px', fontWeight: 'bold'
                 }}>
                   Best
@@ -207,7 +200,7 @@ export default async function Home() {
               <div style={{ fontSize: '22px', marginBottom: '8px' }}><FlagIcon country={resort.country} size={16} /></div>
               <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '2px', color: '#f0ebe0' }}>{resort.name}</div>
               <div style={{ fontSize: '12px', color: '#6b6560', marginBottom: '20px', letterSpacing: '1px', textTransform: 'uppercase' }}>{resort.location}</div>
-              <div style={{ fontSize: '36px', fontWeight: 'bold', color: i === 0 ? '#e8823a' : '#f0ebe0', lineHeight: 1 }}>
+              <div style={{ fontSize: '36px', fontWeight: 'bold', color: i === 0 ? '#f0ebe0' : '#f0ebe0', lineHeight: 1 }}>
                 {resort.totalSnowIn}<span style={{ fontSize: '16px' }}></span>
               </div>
               <div style={{ fontSize: '13px', color: '#6b6560', marginTop: '4px' }}>{resort.totalSnowCm}cm · 7 days</div>
@@ -216,7 +209,7 @@ export default async function Home() {
         </div>
 
         <div style={{ padding: '0 60px' }}>
-          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '8px' }}>Personalized for you</div>
+          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '8px' }}>Personalized for you</div>
           <h2 style={{ fontSize: '44px', fontWeight: 'bold', margin: '0 0 24px', letterSpacing: '-1px' }}>Find your strike mission</h2>
           <p style={{ color: '#6b6560', fontSize: '16px', marginBottom: '32px', maxWidth: '600px' }}>
             Tell us what you are chasing and we will match you to the best trips available right now based on live conditions, your skill level, and your budget.
@@ -226,9 +219,9 @@ export default async function Home() {
         <TripFinder spots={[...sortedSurf.map(s => ({ ...s, type: 'surf' })), ...sortedSnow.map(s => ({ ...s, type: 'ski' }))]} />
 
         {/* EMAIL SIGNUP */}
-        <div style={{ background: '#111010', borderTop: '2px solid #e8823a', padding: '48px', marginBottom: '2px' }}>
+        <div style={{ background: '#111010', borderTop: '2px solid #f0ebe0', padding: '48px', marginBottom: '2px' }}>
           <div style={{ maxWidth: '560px' }}>
-            <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
+            <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>
               Don't miss a strike
             </div>
             <h3 style={{ fontSize: '36px', fontWeight: 'bold', margin: '0 0 12px', letterSpacing: '-1px' }}>
@@ -244,7 +237,7 @@ export default async function Home() {
         {/* CTA BANNER */}
         <div className="home-cta-banner">
           <div>
-            <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#e8823a', marginBottom: '12px' }}>
+            <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#f0ebe0', marginBottom: '12px' }}>
               Ready to go?
             </div>
             <h3 style={{ fontSize: '32px', fontWeight: 'bold', margin: 0, letterSpacing: '-1px' }}>
@@ -252,7 +245,7 @@ export default async function Home() {
             </h3>
           </div>
           <a href="/strikes" style={{
-            display: 'inline-block', padding: '18px 40px', background: '#e8823a',
+            display: 'inline-block', padding: '18px 40px', background: '#f0ebe0',
             color: '#0a0808', textDecoration: 'none', fontWeight: 'bold',
             fontSize: '14px', letterSpacing: '2px', textTransform: 'uppercase',
             borderRadius: '2px', whiteSpace: 'nowrap' as const

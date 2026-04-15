@@ -21,7 +21,7 @@ export default function Ticker({ items }: { items: TickerItem[] }) {
 
   return (
     <div style={{
-      background: '#e8823a',
+      background: '#222220',
       overflow: 'hidden',
       whiteSpace: 'nowrap',
       height: '36px',
@@ -47,10 +47,9 @@ export default function Ticker({ items }: { items: TickerItem[] }) {
             fontWeight: 'bold',
             letterSpacing: '2px',
             textTransform: 'uppercase',
-            color: '#0a0808',
-            borderRight: '1px solid rgba(0,0,0,0.15)',
+            color: '#f0ebe0',
+            borderRight: '1px solid rgba(255,255,255,0.1)',
           }}>
-            <span>{item.type === 'surf' ? '🏄' : '🎿'}</span>
             <span>{item.label}</span>
             <span style={{ opacity: 0.7 }}>·</span>
             <span>{item.value}</span>
