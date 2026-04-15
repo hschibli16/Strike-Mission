@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 @import "tailwindcss";
 
 :root {
@@ -23,4 +27,74 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@media (max-width: 768px) {
+  /* Nav */
+  nav {
+    padding: 16px 20px !important;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* Hero text */
+  h1 {
+    font-size: 48px !important;
+  }
+
+  /* Grids — stack to single column on mobile */
+  div[style*="grid-template-columns: repeat(5"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  div[style*="grid-template-columns: repeat(3"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  div[style*="grid-template-columns: 2fr 1fr"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  div[style*="grid-template-columns: 60px 1fr auto"] {
+    grid-template-columns: 40px 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Padding reductions */
+  div[style*="padding: '60px'"],
+  div[style*="padding: 60px"] {
+    padding: 24px !important;
+  }
+
+  div[style*="padding: '40px 60px'"],
+  div[style*="padding: 40px 60px"] {
+    padding: 24px !important;
+  }
+
+  /* Hero bottom positioning */
+  div[style*="bottom: '48px'"],
+  div[style*="bottom: '80px'"] {
+    bottom: 24px !important;
+    left: 24px !important;
+    right: 24px !important;
+  }
+
+  /* CTA banner */
+  div[style*="justifyContent: 'space-between'"] {
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+
+  /* Email signup */
+  div[style*="display: 'flex'"] input {
+    font-size: 14px !important;
+  }
 }

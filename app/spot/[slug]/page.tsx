@@ -1,6 +1,7 @@
 import { ALL_SPOTS } from '../../spots';
 import { getSwellData } from '../../stormglass';
 import { getSnowForecast } from '../../weather';
+import { FlagIcon } from '../../components/Icons';
 
 function getGoogleFlightsUrl(airportCode: string) {
   const today = new Date();
@@ -44,11 +45,12 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
         padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         borderBottom: '1px solid #1a1510'
       }}>
-        <a href="/" style={{ fontSize: '18px', fontWeight: 'bold', letterSpacing: '3px', textTransform: 'uppercase', color: '#f0ebe0', textDecoration: 'none' }}>
-          ⚡ Strike Mission
+        <a href="/" style={{ textDecoration: 'none' }}>
+          <img src="/logo.svg" alt="Strike Mission" style={{ height: '48px' }} />
         </a>
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
           <a href="/" style={{ color: '#6b6560', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>Conditions</a>
+          <a href="/about" style={{ color: '#6b6560', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>About</a>
           <a href="/strikes" style={{
             color: '#0a0808', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px',
             textTransform: 'uppercase', background: '#e8823a', padding: '10px 20px', borderRadius: '2px', fontWeight: 'bold'
@@ -70,8 +72,8 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
           <a href="/strikes" style={{ color: '#e8823a', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>
             ← Back to Strike Missions
           </a>
-          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#6b6560', margin: '12px 0 8px' }}>
-            {spot.flag} {spot.location}
+          <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#6b6560', margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FlagIcon country={spot.country} size={16} /> {spot.location}
           </div>
           <h1 style={{ fontSize: '72px', fontWeight: 'bold', margin: '0 0 12px', letterSpacing: '-2px', lineHeight: 1 }}>
             {spot.name.toUpperCase()}

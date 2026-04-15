@@ -1,21 +1,23 @@
 import { getSnowForecast } from './weather';
 import { getSwellData } from './stormglass';
 import EmailSignup from './EmailSignup';
+import Ticker from './components/Ticker';
+import { FlagIcon } from './components/Icons';
 
 const SKI_RESORTS = [
-  { name: 'Whistler', location: 'Canada', lat: 50.1163, lon: -122.9574, flag: '🇨🇦' },
-  { name: 'Snowbird', location: 'Utah', lat: 40.5830, lon: -111.6556, flag: '🇺🇸' },
-  { name: 'Niseko', location: 'Japan', lat: 42.8042, lon: 140.6875, flag: '🇯🇵' },
-  { name: 'Chamonix', location: 'France', lat: 45.9237, lon: 6.8694, flag: '🇫🇷' },
-  { name: 'Verbier', location: 'Switzerland', lat: 46.0959, lon: 7.2283, flag: '🇨🇭' },
+  { name: 'Whistler', location: 'Canada', country: 'Canada', lat: 50.1163, lon: -122.9574, flag: '🇨🇦' },
+  { name: 'Snowbird', location: 'Utah', country: 'USA', lat: 40.5830, lon: -111.6556, flag: '🇺🇸' },
+  { name: 'Niseko', location: 'Japan', country: 'Japan', lat: 42.8042, lon: 140.6875, flag: '🇯🇵' },
+  { name: 'Chamonix', location: 'France', country: 'France', lat: 45.9237, lon: 6.8694, flag: '🇫🇷' },
+  { name: 'Verbier', location: 'Switzerland', country: 'Switzerland', lat: 46.0959, lon: 7.2283, flag: '🇨🇭' },
 ];
 
 const SURF_SPOTS = [
-  { name: 'Pipeline', location: 'Hawaii', lat: 21.6653, lon: -158.0530, flag: '🇺🇸' },
-  { name: 'Supertubes', location: 'Portugal', lat: 37.0869, lon: -8.7986, flag: '🇵🇹' },
-  { name: 'Uluwatu', location: 'Bali', lat: -8.8291, lon: 115.0849, flag: '🇮🇩' },
-  { name: 'Hossegor', location: 'France', lat: 43.6647, lon: -1.4320, flag: '🇫🇷' },
-  { name: 'Jeffreys Bay', location: 'South Africa', lat: -34.0522, lon: 26.7950, flag: '🇿🇦' },
+  { name: 'Pipeline', location: 'Hawaii', country: 'USA', lat: 21.6653, lon: -158.0530, flag: '🇺🇸' },
+  { name: 'Supertubes', location: 'Portugal', country: 'Portugal', lat: 37.0869, lon: -8.7986, flag: '🇵🇹' },
+  { name: 'Uluwatu', location: 'Bali', country: 'Indonesia', lat: -8.8291, lon: 115.0849, flag: '🇮🇩' },
+  { name: 'Hossegor', location: 'France', country: 'France', lat: 43.6647, lon: -1.4320, flag: '🇫🇷' },
+  { name: 'Jeffreys Bay', location: 'South Africa', country: 'South Africa', lat: -34.0522, lon: 26.7950, flag: '🇿🇦' },
 ];
 
 export default async function Home() {
@@ -47,17 +49,26 @@ export default async function Home() {
         padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: 'linear-gradient(to bottom, rgba(10,8,8,0.95), transparent)'
       }}>
-        <div style={{ fontSize: '22px', fontWeight: 'bold', letterSpacing: '3px', textTransform: 'uppercase', color: '#f0ebe0' }}>
-          ⚡ Strike Mission
-        </div>
+        <img src="/logo.svg" alt="Strike Mission" style={{ height: '48px' }} />
         <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
           <a href="/" style={{ color: '#f0ebe0', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>Conditions</a>
+          <a href="/hotlist" style={{ color: '#6b6560', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>Hot List</a>
+          <a href="/about" style={{ color: '#6b6560', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase' }}>About</a>
           <a href="/strikes" style={{
             color: '#0a0808', textDecoration: 'none', fontSize: '13px', letterSpacing: '2px',
             textTransform: 'uppercase', background: '#e8823a', padding: '10px 20px', borderRadius: '2px', fontWeight: 'bold'
           }}>Strike Missions</a>
         </div>
       </nav>
+
+      <Ticker items={[
+        { label: 'Pipeline', value: `${sortedSurf[0]?.swell?.waveHeightFt ?? 'N/A'}ft`, type: 'surf' },
+        { label: 'Supertubes', value: `${sortedSurf[1]?.swell?.waveHeightFt ?? 'N/A'}ft`, type: 'surf' },
+        { label: 'Hossegor', value: `${sortedSurf[2]?.swell?.waveHeightFt ?? 'N/A'}ft`, type: 'surf' },
+        { label: 'Whistler', value: `${sortedSnow[0]?.totalSnowIn ?? 'N/A'}"`, type: 'ski' },
+        { label: 'Snowbird', value: `${sortedSnow[1]?.totalSnowIn ?? 'N/A'}"`, type: 'ski' },
+        { label: 'Niseko', value: `${sortedSnow[2]?.totalSnowIn ?? 'N/A'}"`, type: 'ski' },
+      ]} />
 
       {/* HERO */}
       <div style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
@@ -134,7 +145,7 @@ export default async function Home() {
                   Best
                 </div>
               )}
-              <div style={{ fontSize: '22px', marginBottom: '8px' }}>{spot.flag}</div>
+              <div style={{ fontSize: '22px', marginBottom: '8px' }}><FlagIcon country={spot.country} size={16} /></div>
               <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '2px', color: '#f0ebe0' }}>{spot.name}</div>
               <div style={{ fontSize: '12px', color: '#6b6560', marginBottom: '20px', letterSpacing: '1px', textTransform: 'uppercase' }}>{spot.location}</div>
               <div style={{ fontSize: '36px', fontWeight: 'bold', color: i === 0 ? '#e8823a' : '#f0ebe0', lineHeight: 1 }}>
@@ -174,7 +185,7 @@ export default async function Home() {
                   Best
                 </div>
               )}
-              <div style={{ fontSize: '22px', marginBottom: '8px' }}>{resort.flag}</div>
+              <div style={{ fontSize: '22px', marginBottom: '8px' }}><FlagIcon country={resort.country} size={16} /></div>
               <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '2px', color: '#f0ebe0' }}>{resort.name}</div>
               <div style={{ fontSize: '12px', color: '#6b6560', marginBottom: '20px', letterSpacing: '1px', textTransform: 'uppercase' }}>{resort.location}</div>
               <div style={{ fontSize: '36px', fontWeight: 'bold', color: i === 0 ? '#e8823a' : '#f0ebe0', lineHeight: 1 }}>
