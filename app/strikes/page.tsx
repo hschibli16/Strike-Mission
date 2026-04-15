@@ -42,7 +42,9 @@ export default async function StrikeMissions() {
   const snowData = await Promise.all(
     SKI_RESORTS.map(async (resort) => {
       const forecast = await getSnowForecast(resort.lat, resort.lon);
-      const totalSnowCm = forecast.daily.snowfall_sum.reduce((a: number, b: number) => a + b, 0);
+      const totalSnowCm = forecast.consensus
+        ? parseFloat(forecast.consensus.totalSnowCm)
+        : forecast.daily.snowfall_sum.reduce((a: number, b: number) => a + b, 0);
       const totalSnowIn = (totalSnowCm / 2.54).toFixed(1);
       const rating = getSnowRating(totalSnowCm);
       const tripCost = resort.flightPrice + (resort.hotelPrice * 5);

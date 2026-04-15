@@ -28,7 +28,9 @@ export default async function HotList() {
   const snowScored = await Promise.all(
     SKI_RESORTS.map(async (resort) => {
       const forecast = await getSnowForecast(resort.lat, resort.lon);
-      const totalSnowCm = forecast.daily.snowfall_sum.reduce((a: number, b: number) => a + b, 0);
+      const totalSnowCm = forecast.consensus
+        ? parseFloat(forecast.consensus.totalSnowCm)
+        : forecast.daily.snowfall_sum.reduce((a: number, b: number) => a + b, 0);
       const score = scoreSkiSpot({
         totalSnowCm,
         bestMonths: resort.bestMonths,
