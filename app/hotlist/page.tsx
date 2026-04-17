@@ -1,4 +1,4 @@
-import { SURF_SPOTS, SKI_RESORTS } from '../spots';
+import { getSpotsFromDB } from '../lib/getSpots';
 import { WaveIcon, SnowflakeIcon } from '../components/Icons';
 import MobileNav from '../components/MobileNav';
 import { getSwellData } from '../stormglass';
@@ -6,8 +6,12 @@ import { getSnowForecast } from '../weather';
 import { scoreSurfSpot, scoreSkiSpot, getStrikeLabel, getSkiLabel } from '../scoring';
 
 export default async function HotList() {
+  const allSpots = await getSpotsFromDB();
+  const SURF_SPOTS_DB = allSpots.filter(s => s.type === 'surf');
+  const SKI_RESORTS_DB = allSpots.filter(s => s.type === 'ski');
+
   const surfScored = await Promise.all(
-    SURF_SPOTS.map(async (spot) => {
+    SURF_SPOTS_DB.map(async (spot) => {
       const swell = await getSwellData(spot.lat, spot.lon);
       const score = scoreSurfSpot({
         waveHeight: swell?.waveHeightFt ?? null,
@@ -26,7 +30,7 @@ export default async function HotList() {
   );
 
   const snowScored = await Promise.all(
-    SKI_RESORTS.map(async (resort) => {
+    SKI_RESORTS_DB.map(async (resort) => {
       const forecast = await getSnowForecast(resort.lat, resort.lon);
       const totalSnowCm = forecast.consensus
         ? parseFloat(forecast.consensus.totalSnowCm)
