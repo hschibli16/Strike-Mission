@@ -1,6 +1,7 @@
-export async function getSkiResortData(location: string) {
+export async function getSkiResortData(location: string, skiResortQuery?: string) {
+  const query = skiResortQuery ?? location;
   try {
-    const url = `https://api.worldweatheronline.com/premium/v1/ski.ashx?key=${process.env.WORLDWEATHERONLINE_API_KEY}&q=${encodeURIComponent(location)}&format=json&num_of_days=7`;
+    const url = `https://api.worldweatheronline.com/premium/v1/ski.ashx?key=${process.env.WORLDWEATHERONLINE_API_KEY}&q=${encodeURIComponent(query)}&format=json&num_of_days=7`;
     const response = await fetch(url, { next: { revalidate: 3600 } });
     const data = await response.json();
 
