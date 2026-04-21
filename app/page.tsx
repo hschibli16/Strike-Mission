@@ -28,6 +28,22 @@ export default async function Home() {
     .slice(0, 6)
     .map(x => x.spot);
 
+  const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+  const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+  const powderSpots = allSpots
+    .filter(s => s.type === 'ski')
+    .map(s => {
+      let score = 0;
+      if (s.bestMonths && s.bestMonths.includes(currentMonth)) score += 50;
+      if (s.bestMonths && (s.bestMonths.includes(prevMonth) || s.bestMonths.includes(nextMonth))) {
+        score += 20;
+      }
+      return { spot: s, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6)
+    .map(x => x.spot);
+
   return (
     <main style={{ fontFamily: "'Georgia', serif", background: '#0a0808', minHeight: '100vh', color: '#f0ebe0' }}>
 
@@ -73,6 +89,7 @@ export default async function Home() {
           regions={allRegions.map(r => ({ slug: r.slug, name: r.name, type: r.type, countries: r.countries, centroidLat: r.centroidLat, centroidLon: r.centroidLon, focusZoom: r.focusZoom }))}
           spotCountByRegion={spotCountByRegion}
           firingSpots={firingSpots}
+          powderSpots={powderSpots}
           allSpots={allSpots}
         />
       </div>

@@ -36,6 +36,7 @@ interface Props {
   regions: RegionData[];
   spotCountByRegion: Record<string, number>;
   firingSpots: Spot[];
+  powderSpots: Spot[];
   allSpots: Spot[];
 }
 
@@ -70,7 +71,7 @@ function firingTag(spot: Spot): { text: string; color: string } {
   return { text: 'Off-season', color: '#6b6560' };
 }
 
-export default function GuideExplorer({ regions, spotCountByRegion, firingSpots, allSpots }: Props) {
+export default function GuideExplorer({ regions, spotCountByRegion, firingSpots, powderSpots, allSpots }: Props) {
   const [mode, setMode] = useState<Mode>('all');
   const [view, setView] = useState<View>('grid');
 
@@ -84,6 +85,11 @@ export default function GuideExplorer({ regions, spotCountByRegion, firingSpots,
     'All 45 regions worldwide';
 
   const showFiringStrip = view === 'grid' && (mode === 'all' || mode === 'surf') && firingSpots.length > 0;
+  const showPowderStrip = view === 'grid' && (mode === 'all' || mode === 'ski') && powderSpots.length > 0;
+
+  const currentMonth = new Date().getMonth() + 1;
+  const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+  const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
 
   const regionNameBySlug: Record<string, string> = {};
   regions.forEach(r => { regionNameBySlug[r.slug] = r.name; });
@@ -98,6 +104,11 @@ export default function GuideExplorer({ regions, spotCountByRegion, firingSpots,
         .firing-strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
         .firing-strip::-webkit-scrollbar { height: 4px; }
         .firing-strip::-webkit-scrollbar-thumb { background: #1a1510; border-radius: 2px; }
+        .powder-strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+        .powder-strip::-webkit-scrollbar { height: 4px; }
+        .powder-strip::-webkit-scrollbar-thumb { background: #1a1510; border-radius: 2px; }
+        .powder-card { border: 1px solid #1a1510; padding: 20px; min-width: 220px; flex-shrink: 0; text-decoration: none; display: block; color: inherit; transition: border-color 0.15s; }
+        .powder-card:hover { border-color: #2a2520; }
         .guide-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 0 60px 80px 60px; }
         @media (max-width: 1100px) { .guide-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 768px)  { .guide-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -161,6 +172,52 @@ export default function GuideExplorer({ regions, spotCountByRegion, firingSpots,
                       </div>
                       <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 'bold', color: tag.color }}>
                         {tag.text}
+                      </div>
+                      {spot.tagline && (
+                        <div style={{
+                          fontSize: '12px', fontStyle: 'italic', color: '#6b6560', marginTop: '8px',
+                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                        }}>
+                          {spot.tagline}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* POWDER DAYS STRIP */}
+          {showPowderStrip && (
+            <div style={{ padding: '0 60px 48px 60px' }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6b6560' }}>
+                Powder Days
+              </div>
+              <div style={{ fontSize: '13px', fontStyle: 'italic', color: '#6b6560', margin: '4px 0 16px 0' }}>
+                Best snow conditions across our tracked resorts right now
+              </div>
+              <div className="powder-strip">
+                {powderSpots.map(spot => {
+                  const region = regions.find(r => r.slug === spot.regionSlug);
+                  const isInSeason = spot.bestMonths?.includes(currentMonth);
+                  const isShoulder = !isInSeason && spot.bestMonths &&
+                    (spot.bestMonths.includes(prevMonth) || spot.bestMonths.includes(nextMonth));
+                  const statusText = isInSeason ? 'PEAK SEASON · TRACKED' : isShoulder ? 'SHOULDER SEASON' : 'OFF-SEASON';
+                  const statusColor = isInSeason ? '#60a5fa' : isShoulder ? '#fbbf24' : '#6b6560';
+                  return (
+                    <Link key={spot.slug} href={`/spot/${spot.slug}`} className="powder-card">
+                      <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b6560', margin: '0 0 8px 0' }}>
+                        {region?.name ?? spot.location}
+                      </div>
+                      <div style={{ fontFamily: "'Georgia', serif", fontSize: '20px', color: '#f0ebe0', margin: '0' }}>
+                        {spot.name}
+                      </div>
+                      <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b6560', margin: '4px 0 12px 0' }}>
+                        {spot.location}
+                      </div>
+                      <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: statusColor }}>
+                        {statusText}
                       </div>
                       {spot.tagline && (
                         <div style={{
