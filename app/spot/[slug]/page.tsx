@@ -15,6 +15,25 @@ export async function generateStaticParams() {
 
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
+function formatOutlookDate(dayIndex: number): { primary: string; secondary: string } {
+  const date = new Date();
+  date.setDate(date.getDate() + (dayIndex - 1));
+  const weekday = date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+  const month = date.toLocaleDateString('en-US', { month: 'short' });
+  const day = date.getDate();
+  if (dayIndex === 1) return { primary: 'TODAY', secondary: `${month} ${day}` };
+  if (dayIndex === 2) return { primary: 'TMRW', secondary: `${month} ${day}` };
+  return { primary: weekday, secondary: `${month} ${day}` };
+}
+
+function dayLabelToIndex(dayLabel: string): number {
+  if (dayLabel === 'Today') return 1;
+  if (dayLabel === 'Tomorrow') return 2;
+  const match = dayLabel.match(/Day (\d+)/i);
+  if (match) return parseInt(match[1], 10);
+  return 1;
+}
+
 function DirectionArrow({ degrees }: { degrees: number }) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ transform: `rotate(${degrees}deg)`, display: 'inline-block' }}>
@@ -705,9 +724,20 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                             }} />
                             {/* day label */}
                             <div style={{ marginTop: '6px', textAlign: 'center' }}>
-                              <div style={{ fontSize: '10px', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#6b6560', fontWeight: isPeak ? 'bold' : 'normal' }}>
-                                {day.dayLabel}
-                              </div>
+                              {(() => {
+                                const idx = dayLabelToIndex(day.dayLabel);
+                                const dl = formatOutlookDate(idx);
+                                return (
+                                  <>
+                                    <div style={{ fontSize: '10px', letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: isPeak ? 'bold' : 'normal', color: isPeak ? '#f0ebe0' : '#6b6560' }}>
+                                      {dl.primary}
+                                    </div>
+                                    <div style={{ fontSize: '9px', color: '#4a4540', marginTop: '1px' }}>
+                                      {dl.secondary}
+                                    </div>
+                                  </>
+                                );
+                              })()}
                               <div style={{ fontSize: '10px', color: '#4a4540', marginTop: '2px' }}>
                                 ({day.periodSeconds}s)
                               </div>
@@ -718,12 +748,22 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                     </div>
                     {conditions.bestDayThisWeek && (
                       <div style={{ marginTop: '8px', padding: '8px', background: '#111010', fontSize: '12px', color: '#4ade80' }}>
-                        Best this week: {conditions.bestDayThisWeek.dayLabel} — {conditions.bestDayThisWeek.waveHeightFt}ft
+                        {(() => {
+                          const idx = dayLabelToIndex(conditions.bestDayThisWeek.dayLabel);
+                          const dl = formatOutlookDate(idx);
+                          const label = idx <= 2 ? dl.primary.toLowerCase() : `${dl.primary} ${dl.secondary}`;
+                          return <>Best this week: {label} — {conditions.bestDayThisWeek.waveHeightFt}ft</>;
+                        })()}
                       </div>
                     )}
                     {conditions.bestDayNextWeek && (
                       <div style={{ marginTop: '4px', padding: '8px', background: '#111010', fontSize: '12px', color: '#6b6560' }}>
-                        Best next week: {conditions.bestDayNextWeek.dayLabel} — {conditions.bestDayNextWeek.waveHeightFt}ft
+                        {(() => {
+                          const idx = dayLabelToIndex(conditions.bestDayNextWeek.dayLabel);
+                          const dl = formatOutlookDate(idx);
+                          const label = idx <= 2 ? dl.primary.toLowerCase() : `${dl.primary} ${dl.secondary}`;
+                          return <>Best next week: {label} — {conditions.bestDayNextWeek.waveHeightFt}ft</>;
+                        })()}
                       </div>
                     )}
                   </div>
@@ -919,7 +959,9 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {day.isPowderDay && <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#a8d8f0' }} />}
-                        <div style={{ fontSize: '13px', color: day.isPowderDay ? '#f0ebe0' : '#4a4540' }}>{day.dayLabel}</div>
+                        <div style={{ fontSize: '13px', color: day.isPowderDay ? '#f0ebe0' : '#4a4540' }}>
+                          {(() => { const idx = dayLabelToIndex(day.dayLabel); const dl = formatOutlookDate(idx); return idx <= 2 ? `${dl.primary} · ${dl.secondary}` : `${dl.primary} · ${dl.secondary}`; })()}
+                        </div>
                       </div>
                       <div style={{ fontSize: '12px', color: '#4a4540' }}>{day.tempHighF}°F</div>
                       <div style={{ fontSize: '14px', fontWeight: day.isPowderDay ? 'bold' : 'normal', color: '#a8d8f0' }}>
