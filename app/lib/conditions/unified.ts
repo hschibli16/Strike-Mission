@@ -77,6 +77,7 @@ export async function getUnifiedConditions(spot: Spot): Promise<UnifiedCondition
       idealWindDirection: spot.idealWindDirection ?? undefined,
       bestMonths: spot.bestMonths,
       flightPrice: spot.flightPrice ?? 0,
+      regionSlug: spot.regionSlug,
     }).catch(err => { console.warn(`[unified:${spot.slug}] model failed:`, err); return null; }),
     spot.tideStationId
       ? fetchTideData(spot.tideStationId).catch(err => { console.warn(`[unified:${spot.slug}] tide failed:`, err); return null; })

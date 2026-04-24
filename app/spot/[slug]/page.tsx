@@ -1,16 +1,12 @@
 import { getSpotBySlug, getSpotsFromDB, getRegionBySlug } from '../../lib/getSpots';
 import { getStrikeLabel, getSkiLabel } from '../../scoring';
-import { getSurfConditions } from '../../lib/conditions/surf-conditions';
 import { getSkiConditions } from '../../lib/conditions/ski-conditions';
 import MobileNav from '../../components/MobileNav';
 import StrikeVerdictHero, { type BestWindow } from '../../components/StrikeVerdictHero';
-import { fetchBuoyData, formatBuoyAge } from '../../lib/buoy';
-import { transformBuoyToSurf } from '../../lib/surf-transform';
-import { getSpotConfidence } from '../../lib/spot-confidence';
-import NotifyWhenLiveForm from '../../components/NotifyWhenLiveForm';
 import { fetchTideData, describeTideState, formatTideTime, getTideState, tideStateLabel } from '../../lib/tide';
 import type { TideObservation } from '../../lib/tide';
 import TideSparkline from '../../components/TideSparkline';
+import { getUnifiedConditions, type UnifiedConditions } from '../../lib/conditions/unified';
 
 export async function generateStaticParams() {
   const spots = await getSpotsFromDB();
@@ -66,18 +62,48 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
   let conditions: any = null;
   let score = 0;
   let strike: any = null;
+  let unifiedConditions: UnifiedConditions | null = null;
 
   if (isSurf) {
-    conditions = await getSurfConditions({
-      lat: spot.lat,
-      lon: spot.lon,
-      idealSwellDirection: spot.idealSwellDirection,
-      idealWindDirection: spot.idealWindDirection,
-      bestMonths: spot.bestMonths,
-      flightPrice: spot.flightPrice,
-    });
-    score = conditions.overallScore;
+    try {
+      unifiedConditions = await getUnifiedConditions(spot);
+    } catch (err) {
+      console.warn(`[spot:${spot.slug}] unified conditions failed:`, err);
+    }
+    score = unifiedConditions?.score ?? 0;
     strike = getStrikeLabel(score);
+    // Keep conditions populated for outlook/model breakdown sections which still use it
+    try {
+      const { getSurfConditions, generateSurfVerdict } = await import('../../lib/conditions/surf-conditions');
+      conditions = await getSurfConditions({
+        lat: spot.lat,
+        lon: spot.lon,
+        idealSwellDirection: spot.idealSwellDirection,
+        idealWindDirection: spot.idealWindDirection,
+        bestMonths: spot.bestMonths,
+        flightPrice: spot.flightPrice,
+        regionSlug: spot.regionSlug,
+      });
+      // Patch the verdict summary to use the unified (buoy-calibrated) height if available
+      if (unifiedConditions?.estimatedBreakHeightFt != null && conditions) {
+        conditions = {
+          ...conditions,
+          verdict: generateSurfVerdict({
+            waveHeightFt: parseFloat(conditions.waveHeightFt ?? '0') || null,
+            period: conditions.wavePeriod ? parseFloat(conditions.wavePeriod) : null,
+            swellDirScore: conditions.swellDirectionScore,
+            windDirScore: conditions.windDirectionScore,
+            windSpeed: conditions.windSpeedMph ? parseFloat(conditions.windSpeedMph) : null,
+            swellQuality: conditions.swellQuality ?? 'wind_swell',
+            score: conditions.overallScore,
+            isInSeason: spot.bestMonths.includes(new Date().getMonth() + 1),
+            overrideHeightFt: unifiedConditions.estimatedBreakHeightFt,
+          }),
+        };
+      }
+    } catch (err) {
+      console.warn(`[spot:${spot.slug}] surf conditions (outlook) failed:`, err);
+    }
   } else {
     conditions = await getSkiConditions({
       lat: spot.lat,
@@ -91,26 +117,7 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
     strike = getSkiLabel(score);
   }
 
-  const buoyData = (isSurf && spot.buoyId) ? await fetchBuoyData(spot.buoyId) : null;
-  const showBuoy = buoyData !== null && buoyData.waveHeightFt !== null;
-
-  const surfEstimate = (
-    isSurf &&
-    buoyData &&
-    typeof spot.refractionCoefficient === 'number' &&
-    typeof spot.minUsefulPeriod === 'number'
-  )
-    ? transformBuoyToSurf({
-        buoy: buoyData,
-        refractionCoefficient: spot.refractionCoefficient,
-        minUsefulPeriod: spot.minUsefulPeriod,
-      })
-    : null;
-
-  const spotConfidence = getSpotConfidence(spot);
-  const isLowConfidence = isSurf && spotConfidence.tier === 'low';
-  const isMediumConfidence = isSurf && spotConfidence.tier === 'medium';
-
+  // Tide data fetched separately for sparkline display (same cache key as unified pipeline)
   const tideData: TideObservation | null = (isSurf && spot.tideStationId)
     ? await fetchTideData(spot.tideStationId)
     : null;
@@ -139,7 +146,9 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
     : 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1800&q=80';
 
   const verdictLabel = strike.label;
-  const isBookable = verdictLabel !== 'BLOWN OUT' && verdictLabel !== 'FLAT' && verdictLabel !== 'ICY' && verdictLabel !== 'BARE';
+  const isBookable = isSurf
+    ? (unifiedConditions !== null && ['FIRING', 'GOOD', 'FAIR'].includes(unifiedConditions.verdict))
+    : (verdictLabel !== 'BLOWN OUT' && verdictLabel !== 'FLAT' && verdictLabel !== 'ICY' && verdictLabel !== 'BARE');
 
   let bestWindow: BestWindow | null = null;
   if (conditions.outlook && conditions.outlook.length > 0) {
@@ -170,7 +179,9 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
       dayIndex,
       label: best.dayLabel,
       date: dateStr,
-      height: best.waveHeightFt ? `${best.waveHeightFt}ft` : best.snowIn ? `${best.snowIn}"` : '—',
+      height: best.waveHeightFt
+        ? `${(parseFloat(best.waveHeightFt) * (isSurf ? (spot.refractionCoefficient ?? 1.0) : 1.0)).toFixed(1)}ft`
+        : best.snowIn ? `${best.snowIn}"` : '—',
       period: best.periodSeconds ? ` @ ${best.periodSeconds}s` : best.tempHighF ? ` · ${best.tempHighF}°F` : '',
       condLabel: best.label ?? verdictLabel,
     };
@@ -231,35 +242,25 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
           {/* VERDICT INTRO */}
           <div style={{ borderBottom: '1px solid #1a1510' }}>
-            {isLowConfidence ? (
-              <div style={{ padding: '48px 60px' }}>
-                <div style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '8px' }}>{spot.flag} {spot.location}</div>
-                <h1 style={{ fontSize: '48px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', margin: '0 0 16px 0', lineHeight: 1.1 }}>{spot.name}</h1>
-                <p style={{ fontSize: '18px', color: '#6b6560', margin: '0 0 40px 0', fontStyle: 'italic' }}>{spot.tagline}</p>
-                <div style={{ border: '1px solid #1a1510', padding: '48px', background: '#0a0808', maxWidth: '600px' }}>
-                  <div style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '20px' }}>Forecast Unavailable</div>
-                  <h2 style={{ fontSize: '32px', fontFamily: "'Georgia', serif", color: '#f0ebe0', margin: '0 0 20px 0', fontWeight: 'normal' }}>We&apos;re building out this spot</h2>
-                  <p style={{ fontSize: '16px', color: '#f0ebe0', lineHeight: 1.6, maxWidth: '520px', margin: '0 0 32px 0' }}>
-                    Strike Mission doesn&apos;t have a reliable data source for {spot.name} yet. We&apos;re working to partner with local observers and expand our buoy coverage. Drop your email below and we&apos;ll let you know the moment this spot goes live with accurate forecasts.
-                  </p>
-                  <NotifyWhenLiveForm spotName={spot.name} />
-                </div>
-              </div>
-            ) : (
-              <StrikeVerdictHero
-                spotName={spot.name}
-                location={spot.location}
-                flag={spot.flag}
-                tagline={spot.tagline}
-                verdict={verdictLabel}
-                summary={conditions.verdict}
-                isBookable={isBookable}
-              />
-            )}
+            <StrikeVerdictHero
+              spotName={spot.name}
+              location={spot.location}
+              flag={spot.flag}
+              tagline={spot.tagline}
+              verdict={
+                isSurf
+                  ? (unifiedConditions?.verdict === 'BLOWN_OUT' ? 'BLOWN OUT' :
+                     unifiedConditions?.verdict === 'NO_DATA' ? 'NO DATA' :
+                     unifiedConditions?.verdict ?? 'NO DATA')
+                  : verdictLabel
+              }
+              summary={conditions?.verdict ?? ''}
+              isBookable={isBookable}
+            />
           </div>
 
-          {/* LIVE CONDITIONS — hidden for LOW tier */}
-          {!isLowConfidence && <div style={{ padding: '40px 60px', borderBottom: '1px solid #1a1510' }}>
+          {/* LIVE CONDITIONS */}
+          {<div style={{ padding: '40px 60px', borderBottom: '1px solid #1a1510' }}>
             <div style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', margin: '0 0 12px 0' }}>
               Live Conditions
             </div>
@@ -273,11 +274,34 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
               </div>
 
               {/* WHY THIS VERDICT */}
-              {isMediumConfidence && (
-                <div style={{ border: '1px solid #fbbf24', padding: '16px 24px', background: '#0a0808', margin: '24px 0', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fbbf24', flexShrink: 0, marginTop: '6px' }} />
-                  <div style={{ fontSize: '14px', fontFamily: "'Georgia', serif", color: '#f0ebe0', lineHeight: 1.6 }}>
-                    Forecast approximated. This spot&apos;s complex coastal geometry makes precise nowcasts harder. We&apos;re working on better data sources.
+              {/* Universal confidence note */}
+              {unifiedConditions && (
+                <div style={{
+                  border: `1px solid ${unifiedConditions.confidence === 'high' ? '#1a2a1a' : unifiedConditions.confidence === 'medium' ? '#2a2510' : '#1a1510'}`,
+                  background: '#0a0808',
+                  padding: '12px 20px',
+                  margin: '24px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  fontFamily: 'Georgia, serif',
+                  fontSize: 13,
+                  color: '#f0ebe0',
+                }}>
+                  <div style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: unifiedConditions.confidence === 'high' ? '#4ade80' : unifiedConditions.confidence === 'medium' ? '#fbbf24' : '#6b6560',
+                    flexShrink: 0,
+                  }} />
+                  <div style={{ fontStyle: 'italic', color: '#6b6560' }}>
+                    <span style={{
+                      textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 11,
+                      color: unifiedConditions.confidence === 'high' ? '#4ade80' : unifiedConditions.confidence === 'medium' ? '#fbbf24' : '#6b6560',
+                      marginRight: 8, fontStyle: 'normal',
+                    }}>
+                      {unifiedConditions.confidence.toUpperCase()} CONFIDENCE
+                    </span>
+                    {unifiedConditions.confidenceReason}
                   </div>
                 </div>
               )}
@@ -286,8 +310,8 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                 const rows: VerdictRow[] = [];
 
                 // 1. Swell Direction
-                if (conditions.primarySwell?.directionDegrees != null && spot.idealSwellDirection != null) {
-                  const actual = conditions.primarySwell.directionDegrees;
+                if (unifiedConditions?.swellDirectionDeg != null && spot.idealSwellDirection != null) {
+                  const actual = unifiedConditions.swellDirectionDeg;
                   const ideal = spot.idealSwellDirection;
                   let diff = Math.abs(actual - ideal);
                   if (diff > 180) diff = 360 - diff;
@@ -298,59 +322,73 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                   } else {
                     rows.push({ factor: 'Swell Direction', dot: '#ef4444', text: `Primary swell is ${actual}° — wrong angle. This spot needs ${ideal}° swells to break properly.` });
                   }
+                } else if (conditions?.primarySwell?.directionDegrees != null && spot.idealSwellDirection != null) {
+                  const actual = conditions.primarySwell.directionDegrees;
+                  const ideal = spot.idealSwellDirection;
+                  let diff = Math.abs(actual - ideal);
+                  if (diff > 180) diff = 360 - diff;
+                  if (diff <= 30) {
+                    rows.push({ factor: 'Swell Direction', dot: '#4ade80', text: `Primary swell is ${actual}° — matches the ideal ${ideal}° window for this spot` });
+                  } else if (diff <= 60) {
+                    rows.push({ factor: 'Swell Direction', dot: '#fbbf24', text: `Primary swell is ${actual}° — close to but not perfectly aligned with ideal ${ideal}°.` });
+                  } else {
+                    rows.push({ factor: 'Swell Direction', dot: '#ef4444', text: `Primary swell is ${actual}° — wrong angle. This spot needs ${ideal}° swells to break properly.` });
+                  }
                 }
 
                 // 2. Swell Period
-                const period = conditions.wavePeriod ? parseFloat(conditions.wavePeriod) : null;
+                const period = unifiedConditions?.periodS ?? (conditions?.wavePeriod ? parseFloat(conditions.wavePeriod) : null);
                 if (period != null && !isNaN(period)) {
                   if (period < 8) {
-                    rows.push({ factor: 'Swell Period', dot: '#ef4444', text: `${period}s — this is wind chop, not groundswell. Waves will be weak and disorganized.` });
+                    rows.push({ factor: 'Swell Period', dot: '#ef4444', text: `${period.toFixed(0)}s — this is wind chop, not groundswell. Waves will be weak and disorganized.` });
                   } else if (period < 10) {
-                    rows.push({ factor: 'Swell Period', dot: '#fbbf24', text: `${period}s — short-period swell. Waves will have less power than a true groundswell.` });
+                    rows.push({ factor: 'Swell Period', dot: '#fbbf24', text: `${period.toFixed(0)}s — short-period swell. Waves will have less power than a true groundswell.` });
                   } else if (period < 13) {
-                    rows.push({ factor: 'Swell Period', dot: '#4ade80', text: `${period}s — solid groundswell. Waves will have real energy and organization.` });
+                    rows.push({ factor: 'Swell Period', dot: '#4ade80', text: `${period.toFixed(0)}s — solid groundswell. Waves will have real energy and organization.` });
                   } else {
-                    rows.push({ factor: 'Swell Period', dot: '#4ade80', text: `${period}s — strong, long-period groundswell. Maximum wave power and quality.` });
+                    rows.push({ factor: 'Swell Period', dot: '#4ade80', text: `${period.toFixed(0)}s — strong, long-period groundswell. Maximum wave power and quality.` });
                   }
                 }
 
                 // 3. Wind
-                if (conditions.windSpeedMph != null) {
-                  const speed = parseFloat(conditions.windSpeedMph);
-                  const dirScore = conditions.windDirectionScore ?? 50;
-                  const label = conditions.windDirectionLabel ?? '';
+                const windSpeed = unifiedConditions?.windSpeedMph ?? (conditions?.windSpeedMph != null ? parseFloat(conditions.windSpeedMph) : null);
+                const dirScore = unifiedConditions?.windDirectionScore ?? conditions?.windDirectionScore ?? 50;
+                if (windSpeed != null) {
+                  const speed = windSpeed;
                   const isOffshore = dirScore >= 70;
                   const isCross = dirScore >= 40 && dirScore < 70;
                   if (isOffshore) {
-                    if (speed < 15) rows.push({ factor: 'Wind', dot: '#4ade80', text: `${speed}mph offshore — clean, grooming the wave face` });
-                    else if (speed <= 25) rows.push({ factor: 'Wind', dot: '#fbbf24', text: `${speed}mph offshore — strong offshore, may cause waves to stand up late` });
-                    else rows.push({ factor: 'Wind', dot: '#ef4444', text: `${speed}mph offshore — too strong, will hold waves up and make drops difficult` });
+                    if (speed < 15) rows.push({ factor: 'Wind', dot: '#4ade80', text: `${speed.toFixed(0)}mph offshore — clean, grooming the wave face` });
+                    else if (speed <= 25) rows.push({ factor: 'Wind', dot: '#fbbf24', text: `${speed.toFixed(0)}mph offshore — strong offshore, may cause waves to stand up late` });
+                    else rows.push({ factor: 'Wind', dot: '#ef4444', text: `${speed.toFixed(0)}mph offshore — too strong, will hold waves up and make drops difficult` });
                   } else if (isCross) {
-                    rows.push({ factor: 'Wind', dot: '#fbbf24', text: `${speed}mph cross-shore — not ideal but surfable if wind is light` });
+                    rows.push({ factor: 'Wind', dot: '#fbbf24', text: `${speed.toFixed(0)}mph cross-shore — not ideal but surfable if wind is light` });
                   } else {
-                    if (speed < 10) rows.push({ factor: 'Wind', dot: '#fbbf24', text: `${speed}mph onshore — light but will soften wave shape` });
-                    else rows.push({ factor: 'Wind', dot: '#ef4444', text: `${speed}mph onshore — will chop up the surface and ruin wave shape` });
+                    if (speed < 10) rows.push({ factor: 'Wind', dot: '#fbbf24', text: `${speed.toFixed(0)}mph onshore — light but will soften wave shape` });
+                    else rows.push({ factor: 'Wind', dot: '#ef4444', text: `${speed.toFixed(0)}mph onshore — will chop up the surface and ruin wave shape` });
                   }
                 }
 
                 // 4. Tide
-                if (tideData) {
+                if (unifiedConditions?.tideState && unifiedConditions.tideState !== 'unknown') {
+                  const ts = unifiedConditions.tideState;
+                  let tideDot = '#fbbf24';
+                  let tideText: string = String(ts);
+                  if (ts === 'low') { tideDot = '#4ade80'; tideText = 'Low tide — often the best window for reef/point breaks'; }
+                  else if (ts === 'high') { tideDot = '#fbbf24'; tideText = 'High tide — some spots get mushy at peak high'; }
+                  else if (ts === 'rising') { tideDot = '#4ade80'; tideText = 'Rising tide — workable window'; }
+                  else if (ts === 'falling') { tideDot = '#4ade80'; tideText = 'Falling tide — workable window'; }
+                  rows.push({ factor: 'Tide', dot: tideDot, text: tideText });
+                } else if (tideData) {
                   const state = describeTideState(tideData);
                   const nearHigh = tideData.nextHigh && Math.abs(tideData.nextHigh.minutesFromNow) <= 30;
                   const nearLow = tideData.nextLow && Math.abs(tideData.nextLow.minutesFromNow) <= 30;
                   const isMidTide = !nearHigh && !nearLow && tideData.trend !== 'unknown';
                   let tideDot = '#fbbf24';
                   let tideText = state;
-                  if (nearHigh) {
-                    tideDot = '#fbbf24';
-                    tideText = `${state} — some spots get mushy at peak high`;
-                  } else if (nearLow) {
-                    tideDot = '#4ade80';
-                    tideText = `${state} — often the best tide for reef/point breaks`;
-                  } else if (isMidTide) {
-                    tideDot = '#4ade80';
-                    tideText = `${state} — workable tide window`;
-                  }
+                  if (nearHigh) { tideDot = '#fbbf24'; tideText = `${state} — some spots get mushy at peak high`; }
+                  else if (nearLow) { tideDot = '#4ade80'; tideText = `${state} — often the best tide for reef/point breaks`; }
+                  else if (isMidTide) { tideDot = '#4ade80'; tideText = `${state} — workable tide window`; }
                   rows.push({ factor: 'Tide', dot: tideDot, text: tideText });
                 }
 
@@ -369,13 +407,13 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                 }
 
                 // 6. Data Confidence
-                if (surfEstimate) {
-                  if (surfEstimate.confidence === 'high') {
-                    rows.push({ factor: 'Data Confidence', dot: '#4ade80', text: 'Live buoy data is fresh and well-matched to this spot\'s calibration' });
-                  } else if (surfEstimate.confidence === 'moderate') {
-                    rows.push({ factor: 'Data Confidence', dot: '#fbbf24', text: 'Transformation is reasonable but not fully validated for current conditions' });
+                if (unifiedConditions) {
+                  if (unifiedConditions.confidence === 'high') {
+                    rows.push({ factor: 'Data Confidence', dot: '#4ade80', text: 'Fresh buoy data with calibrated coastal transformation' });
+                  } else if (unifiedConditions.confidence === 'medium') {
+                    rows.push({ factor: 'Data Confidence', dot: '#fbbf24', text: unifiedConditions.confidenceReason });
                   } else {
-                    rows.push({ factor: 'Data Confidence', dot: '#ef4444', text: surfEstimate.confidenceReason });
+                    rows.push({ factor: 'Data Confidence', dot: '#6b6560', text: unifiedConditions.confidenceReason });
                   }
                 }
 
@@ -383,7 +421,7 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                 return (
                   <div style={{ border: '1px solid #1a1510', padding: '24px', margin: '24px 0' }}>
                     <div style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '16px' }}>
-                      Why it&apos;s {verdictLabel}
+                      Why it&apos;s {unifiedConditions?.verdict === 'BLOWN_OUT' ? 'BLOWN OUT' : unifiedConditions?.verdict === 'NO_DATA' ? 'UNKNOWN' : (unifiedConditions?.verdict ?? 'UNKNOWN')}
                     </div>
                     {rows.map((row, i) => (
                       <div key={row.factor} style={{
@@ -403,173 +441,147 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                 );
               })()}
 
-              {/* ROW 1 — Headline metrics */}
+              {/* ROW 1 — Headline metrics from unified pipeline */}
               <style>{`
-                .cond-row1 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-                .cond-row1.has-buoy { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; }
-                .cond-row1.has-buoy.has-estimate { grid-template-columns: repeat(6, 1fr); }
-                .cond-row1.has-buoy.has-estimate.has-tide { grid-template-columns: repeat(6, 1fr) 1.6fr; }
+                .cond-row1 { display: grid; gap: 12px; grid-template-columns: repeat(4, 1fr); margin-bottom: 12px; }
+                .cond-row1.has-buoy { grid-template-columns: repeat(5, 1fr); }
+                .cond-row1.has-buoy.has-tide { grid-template-columns: repeat(6, 1fr); }
+                .cond-row1.has-tide:not(.has-buoy) { grid-template-columns: repeat(5, 1fr); }
                 .cond-row2 { display: grid; grid-template-columns: 3fr 2fr; gap: 8px; margin-bottom: 16px; }
-                @media (max-width: 1300px) {
-                  .cond-row1.has-buoy.has-estimate.has-tide { grid-template-columns: repeat(4, 1fr) !important; }
-                }
                 @media (max-width: 1100px) {
-                  .cond-row1.has-buoy.has-estimate { grid-template-columns: repeat(3, 1fr) !important; }
-                }
-                @media (max-width: 900px) {
-                  .cond-row1.has-buoy.has-estimate.has-tide { grid-template-columns: repeat(3, 1fr) !important; }
-                }
-                @media (max-width: 768px) {
-                  .cond-row1 { grid-template-columns: 1fr 1fr !important; }
-                  .cond-row1.has-buoy { grid-template-columns: 1fr 1fr 1fr !important; }
-                  .cond-row2 { grid-template-columns: 1fr !important; }
+                  .cond-row1, .cond-row1.has-buoy, .cond-row1.has-tide, .cond-row1.has-buoy.has-tide { grid-template-columns: repeat(3, 1fr) !important; }
                 }
                 @media (max-width: 640px) {
-                  .cond-row1.has-buoy.has-estimate { grid-template-columns: repeat(2, 1fr) !important; }
-                  .cond-row1.has-buoy.has-estimate.has-tide { grid-template-columns: repeat(2, 1fr) !important; }
+                  .cond-row1, .cond-row1.has-buoy, .cond-row1.has-tide, .cond-row1.has-buoy.has-tide { grid-template-columns: repeat(2, 1fr) !important; }
+                  .cond-row2 { grid-template-columns: 1fr !important; }
                 }
               `}</style>
-              <div className={`cond-row1${showBuoy ? ' has-buoy' : ''}${surfEstimate ? ' has-estimate' : ''}${tideData ? ' has-tide' : ''}`}>
-                {/* Observed (buoy) */}
-                {showBuoy && (() => {
-                  const isStale = buoyData!.ageMinutes > 360;
-                  return (
-                    <div style={{ border: '1px solid #1a1510', padding: '20px', position: 'relative', opacity: isStale ? 0.5 : 1 }}>
-                      {/* Green live dot */}
-                      <div
-                        title={`Live data from NOAA buoy ${buoyData!.buoyId}. Observations update every 30-60 minutes.`}
-                        style={{
-                          position: 'absolute', top: '10px', right: '10px',
-                          width: '6px', height: '6px', borderRadius: '50%',
-                          background: '#4ade80', cursor: 'help',
-                        }}
-                      />
-                      <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '10px' }}>Live Buoy {buoyData!.buoyId}</div>
-                      <div style={{ fontSize: '40px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', lineHeight: 1 }}>
-                        {buoyData!.waveHeightFt}<span style={{ fontSize: '18px' }}>ft</span>
-                      </div>
-                      {buoyData!.periodS !== null && (
-                        <div style={{ fontSize: '14px', color: '#f0ebe0', marginTop: '6px' }}>{buoyData!.periodS}s</div>
-                      )}
-                      <div style={{ fontSize: '11px', color: '#6b6560', marginTop: '4px', fontStyle: isStale ? 'italic' : 'normal' }}>
-                        {formatBuoyAge(buoyData!.ageMinutes)}
-                      </div>
-                    </div>
-                  );
-                })()}
-                {/* At the Break (transformed estimate) */}
-                {surfEstimate && (() => {
-                  const confColor = surfEstimate.confidence === 'high' ? '#4ade80' : surfEstimate.confidence === 'moderate' ? '#fbbf24' : '#6b6560';
-                  return (
-                    <div style={{ border: '1px solid #1a1510', padding: '20px', position: 'relative' }}>
-                      <div
-                        title="Estimated breaker height at the spot. Calculated from live buoy data using coastal transformation (Caldwell & Aucan 2007)."
-                        style={{
-                          position: 'absolute', top: '10px', right: '10px',
-                          width: '6px', height: '6px', borderRadius: '50%',
-                          background: '#fbbf24', cursor: 'help',
-                        }}
-                      />
+              {unifiedConditions && (() => {
+                const hasBuoy = unifiedConditions.dataSource === 'buoy_direct';
+                const hasTide = unifiedConditions.tideHeightFt !== null;
+                const confColor = unifiedConditions.confidence === 'high' ? '#4ade80' : unifiedConditions.confidence === 'medium' ? '#fbbf24' : '#6b6560';
+                const confLabel = unifiedConditions.confidence === 'high' ? 'HIGH CONFIDENCE' : unifiedConditions.confidence === 'medium' ? 'MEDIUM CONFIDENCE' : 'LOW CONFIDENCE';
+
+                function degToCompass(deg: number | null): string {
+                  if (deg == null) return '—';
+                  const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+                  return dirs[Math.round(deg / 45) % 8];
+                }
+
+                function wetsuitRec(tempF: number | null): string {
+                  if (tempF == null) return '';
+                  if (tempF >= 75) return 'Boardshorts';
+                  if (tempF >= 65) return 'Spring suit';
+                  if (tempF >= 55) return '3/2 wetsuit';
+                  return '4/3 wetsuit';
+                }
+
+                return (
+                  <div className={`cond-row1${hasBuoy ? ' has-buoy' : ''}${hasTide ? ' has-tide' : ''}`}>
+                    {/* Card 1 — AT THE BREAK */}
+                    <div style={{ border: '1px solid #1a1510', padding: '20px' }}>
                       <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '10px' }}>At the Break</div>
                       <div style={{ fontSize: '40px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', lineHeight: 1 }}>
-                        {surfEstimate.estimatedSurfHeightFt.toFixed(1)}<span style={{ fontSize: '18px' }}>ft</span>
+                        {unifiedConditions.estimatedBreakHeightFt != null ? unifiedConditions.estimatedBreakHeightFt.toFixed(1) : '—'}<span style={{ fontSize: '18px' }}>ft</span>
                       </div>
-                      <div style={{ fontSize: '11px', color: confColor, marginTop: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        {surfEstimate.confidence} confidence
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#6b6560', marginTop: '4px', fontStyle: 'italic' }}>
-                        {surfEstimate.confidenceReason}
+                      <div style={{ fontSize: '11px', color: confColor, marginTop: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{confLabel}</div>
+                      <div style={{ fontSize: '11px', color: '#6b6560', marginTop: '4px', fontStyle: 'italic', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                        {unifiedConditions.confidenceReason}
                       </div>
                     </div>
-                  );
-                })()}
-                {/* Wave Height */}
-                <div style={{ border: '1px solid #1a1510', padding: '20px' }}>
-                  <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '10px' }}>Wave Height</div>
-                  <div style={{ fontSize: '40px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', lineHeight: 1 }}>
-                    {conditions.waveHeightFt ?? 'N/A'}<span style={{ fontSize: '18px' }}>ft</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#6b6560', marginTop: '6px' }}>{conditions.waveHeightM ?? '—'}m</div>
-                  <div style={{ fontSize: '11px', color: '#4a4540', marginTop: '4px' }}>Consensus · {conditions.modelCount} models</div>
-                </div>
 
-                {/* Period */}
-                <div style={{ border: '1px solid #1a1510', padding: '20px' }}>
-                  <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '10px' }}>Period</div>
-                  <div style={{ fontSize: '40px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', lineHeight: 1 }}>
-                    {conditions.wavePeriod ?? 'N/A'}<span style={{ fontSize: '18px' }}>s</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#6b6560', marginTop: '6px' }}>
-                    {conditions.swellQuality === 'groundswell' ? '✓ Groundswell' : conditions.swellQuality === 'mixed' ? '~ Mixed' : '✗ Wind swell'}
-                  </div>
-                </div>
-
-                {/* Wind */}
-                <div style={{ border: '1px solid #1a1510', padding: '20px' }}>
-                  <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '10px' }}>Wind</div>
-                  <div style={{ fontSize: '40px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', lineHeight: 1 }}>
-                    {conditions.windSpeedMph ?? 'N/A'}<span style={{ fontSize: '18px' }}>mph</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#6b6560', marginTop: '6px' }}>{conditions.windDirectionLabel ?? '—'}</div>
-                </div>
-
-                {/* Sea Temp */}
-                <div style={{ border: '1px solid #1a1510', padding: '20px' }}>
-                  <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '10px' }}>Water</div>
-                  {conditions.seaTempF ? (
-                    <>
+                    {/* Card 2 — PERIOD */}
+                    <div style={{ border: '1px solid #1a1510', padding: '20px' }}>
+                      <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '10px' }}>Period</div>
                       <div style={{ fontSize: '40px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', lineHeight: 1 }}>
-                        {conditions.seaTempF}<span style={{ fontSize: '18px' }}>°F</span>
+                        {unifiedConditions.periodS != null ? unifiedConditions.periodS.toFixed(0) : '—'}<span style={{ fontSize: '18px' }}>s</span>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#6b6560', marginTop: '6px' }}>{conditions.seaTempC}°C · {conditions.wetsuitRecommendation}</div>
-                    </>
-                  ) : (
-                    <div style={{ fontSize: '20px', color: '#4a4540', lineHeight: 1 }}>—</div>
-                  )}
-                </div>
+                      <div style={{ fontSize: '12px', color: unifiedConditions.periodS != null && unifiedConditions.periodS >= 11 ? '#4ade80' : '#6b6560', marginTop: '6px' }}>
+                        {unifiedConditions.periodS == null ? '—' : unifiedConditions.periodS >= 11 ? '✓ Groundswell' : unifiedConditions.periodS >= 8 ? 'Mid-period' : '✗ Wind swell'}
+                      </div>
+                    </div>
 
-                {/* Tide */}
-                {tideData && surfEstimate && (() => {
-                  const nextEvent = tideData.nextHigh && tideData.nextLow
-                    ? (tideData.nextHigh.minutesFromNow < tideData.nextLow.minutesFromNow ? tideData.nextHigh : tideData.nextLow)
-                    : (tideData.nextHigh ?? tideData.nextLow);
-                  const ht = tideData.currentHeightFt;
-                  const htDisplay = ht !== null
-                    ? (Math.abs(ht) < 1 ? ht.toFixed(2) : ht.toFixed(1))
-                    : null;
-                  const state = getTideState(tideData);
-                  const label = tideStateLabel(state);
-                  return (
-                    <div
-                      title={`Tide data from NOAA station ${tideData.stationId}. Sparkline shows 24-hour tide curve centered on now.`}
-                      style={{ border: '1px solid #1a1510', padding: '20px', position: 'relative' }}
-                    >
-                      <div
-                        style={{
-                          position: 'absolute', top: '10px', right: '10px',
-                          width: '6px', height: '6px', borderRadius: '50%',
-                          background: '#60a5fa',
-                        }}
-                      />
-                      <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '4px' }}>Tide</div>
-                      <div style={{ fontSize: '18px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', letterSpacing: '0.02em', margin: '4px 0 12px 0' }}>
-                        {label}
+                    {/* Card 3 — WIND */}
+                    <div style={{ border: '1px solid #1a1510', padding: '20px' }}>
+                      <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '10px' }}>Wind</div>
+                      <div style={{ fontSize: '40px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', lineHeight: 1 }}>
+                        {unifiedConditions.windSpeedMph != null ? Math.round(unifiedConditions.windSpeedMph) : '—'}<span style={{ fontSize: '18px' }}>mph</span>
                       </div>
-                      <div style={{ margin: '8px 0 12px 0', overflowX: 'hidden' }}>
-                        <TideSparkline tide={tideData} width={220} height={48} />
+                      <div style={{ fontSize: '12px', color: '#6b6560', marginTop: '6px' }}>
+                        {degToCompass(unifiedConditions.windDirectionDeg)}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#6b6560' }}>
-                        {htDisplay !== null ? `${htDisplay}ft` : '—'}
+                      <div style={{ fontSize: '11px', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em',
+                        color: unifiedConditions.windDirectionScore >= 70 ? '#4ade80' : unifiedConditions.windDirectionScore < 40 ? '#ef4444' : '#6b6560' }}>
+                        {unifiedConditions.windDirectionScore >= 70 ? 'OFFSHORE' : unifiedConditions.windDirectionScore >= 40 ? 'CROSS-SHORE' : 'ONSHORE'}
                       </div>
-                      {nextEvent && (
-                        <div style={{ fontSize: '11px', color: '#6b6560', marginTop: '2px' }}>
-                          Next {nextEvent.type === 'H' ? 'high' : 'low'}: {formatTideTime(nextEvent)}
-                        </div>
+                    </div>
+
+                    {/* Card 4 — WATER */}
+                    <div style={{ border: '1px solid #1a1510', padding: '20px' }}>
+                      <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '10px' }}>Water</div>
+                      {unifiedConditions.waterTempF != null ? (
+                        <>
+                          <div style={{ fontSize: '40px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', lineHeight: 1 }}>
+                            {Math.round(unifiedConditions.waterTempF)}<span style={{ fontSize: '18px' }}>°F</span>
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#6b6560', marginTop: '6px' }}>{wetsuitRec(unifiedConditions.waterTempF)}</div>
+                        </>
+                      ) : (
+                        <div style={{ fontSize: '20px', color: '#4a4540', lineHeight: 1 }}>—</div>
                       )}
                     </div>
-                  );
-                })()}
-              </div>
+
+                    {/* Card 5 — LIVE BUOY (only if buoy_direct) */}
+                    {hasBuoy && (
+                      <div style={{ border: '1px solid #1a1510', padding: '20px', position: 'relative' }}>
+                        <div style={{ position: 'absolute', top: '10px', right: '10px', width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80' }} />
+                        <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '10px' }}>
+                          Live Buoy {spot.buoyId}
+                        </div>
+                        <div style={{ fontSize: '40px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', lineHeight: 1 }}>
+                          {unifiedConditions.waveHeightFt != null ? unifiedConditions.waveHeightFt.toFixed(1) : '—'}<span style={{ fontSize: '18px' }}>ft</span>
+                        </div>
+                        {unifiedConditions.periodS != null && (
+                          <div style={{ fontSize: '14px', color: '#f0ebe0', marginTop: '6px' }}>{unifiedConditions.periodS.toFixed(0)}s</div>
+                        )}
+                        <div style={{ fontSize: '11px', color: '#6b6560', marginTop: '4px' }}>
+                          {unifiedConditions.ageMinutes != null ? `${unifiedConditions.ageMinutes} min ago` : '—'}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Card 6 — TIDE (only if tide data) */}
+                    {hasTide && tideData && (() => {
+                      const nextEvent = tideData.nextHigh && tideData.nextLow
+                        ? (tideData.nextHigh.minutesFromNow < tideData.nextLow.minutesFromNow ? tideData.nextHigh : tideData.nextLow)
+                        : (tideData.nextHigh ?? tideData.nextLow);
+                      const state = getTideState(tideData);
+                      const label = tideStateLabel(state);
+                      const htDisplay = unifiedConditions.tideHeightFt != null
+                        ? (Math.abs(unifiedConditions.tideHeightFt) < 1 ? unifiedConditions.tideHeightFt.toFixed(2) : unifiedConditions.tideHeightFt.toFixed(1))
+                        : null;
+                      return (
+                        <div style={{ border: '1px solid #1a1510', padding: '20px', position: 'relative' }}>
+                          <div style={{ position: 'absolute', top: '10px', right: '10px', width: '6px', height: '6px', borderRadius: '50%', background: '#60a5fa' }} />
+                          <div style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '4px' }}>Tide</div>
+                          <div style={{ fontSize: '18px', fontFamily: "'Georgia', serif", fontWeight: 'bold', color: '#f0ebe0', letterSpacing: '0.02em', margin: '4px 0 12px 0' }}>
+                            {label}
+                          </div>
+                          <div style={{ margin: '8px 0 12px 0', overflowX: 'hidden' }}>
+                            <TideSparkline tide={tideData} width={220} height={48} />
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#6b6560' }}>{htDisplay !== null ? `${htDisplay}ft` : '—'}</div>
+                          {nextEvent && (
+                            <div style={{ fontSize: '11px', color: '#6b6560', marginTop: '2px' }}>
+                              Next {nextEvent.type === 'H' ? 'high' : 'low'}: {formatTideTime(nextEvent)}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                );
+              })()}
 
               {/* ROW 2 — Directions + Swells */}
               <div className="cond-row2">
@@ -1087,18 +1099,8 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
         {/* RIGHT — Sticky Sidebar */}
         <div className="spot-sidebar" style={{ background: '#0d0b0b' }}>
 
-          {/* FORECAST UNAVAILABLE — shown for LOW confidence surf spots */}
-          {isLowConfidence && (
-            <div style={{ padding: '24px', borderBottom: '1px solid #1a1510' }}>
-              <div style={{ border: '1px solid #1a1510', padding: '20px' }}>
-                <div style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '8px' }}>Forecast</div>
-                <div style={{ fontSize: '13px', color: '#4a4540', lineHeight: 1.5 }}>Forecast unavailable for this spot</div>
-              </div>
-            </div>
-          )}
-
-          {/* BEST WINDOW — hidden for LOW confidence surf spots */}
-          {bestWindow && !isLowConfidence && (
+          {/* BEST WINDOW */}
+          {bestWindow && (
             <div style={{ padding: '24px', borderBottom: '1px solid #1a1510' }}>
               <div style={{ background: '#1a1510', border: '1px solid #2a2520', padding: '24px' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6560', marginBottom: '16px' }}>

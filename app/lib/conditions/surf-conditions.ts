@@ -57,7 +57,7 @@ function wetsuitRecommendation(seaTempC: number): string {
   return 'Boardshorts';
 }
 
-function generateSurfVerdict(params: {
+export function generateSurfVerdict(params: {
   waveHeightFt: number | null;
   period: number | null;
   swellDirScore: number;
@@ -66,8 +66,10 @@ function generateSurfVerdict(params: {
   swellQuality: string;
   score: number;
   isInSeason: boolean;
+  overrideHeightFt?: number | null;
 }): string {
-  const { waveHeightFt, period, swellDirScore, windDirScore, windSpeed, swellQuality, score, isInSeason } = params;
+  const { period, swellDirScore, windDirScore, windSpeed, swellQuality, score, isInSeason, overrideHeightFt } = params;
+  const waveHeightFt = overrideHeightFt ?? params.waveHeightFt;
 
   if (!waveHeightFt || waveHeightFt < 1) {
     return 'Flat. Not worth the trip right now — check back when a swell is on the way.';
@@ -151,6 +153,30 @@ function generateSurfVerdict(params: {
   return parts.map(p => p.replace(/[\s.—]+$/, '')).join(' — ');
 }
 
+function getPrimaryMarineModel(regionSlug: string | undefined): 'icon' | 'gfswave' | 'ecmwf_wam' {
+  const usCoastRegions = [
+    'hawaii',
+    'pacific-northwest-california-coast',
+    'atlantic-canada-new-england',
+    'us-mid-atlantic-southeast',
+    'caribbean-islands',
+    'baja-mexico-pacific',
+    'central-america-pacific',
+    'south-america-pacific',
+    'atlantic-south-america',
+  ];
+  if (regionSlug && usCoastRegions.includes(regionSlug)) return 'gfswave';
+
+  const europeRegions = [
+    'atlantic-europe',
+    'north-atlantic-arctic',
+    'west-african-atlantic',
+  ];
+  if (regionSlug && europeRegions.includes(regionSlug)) return 'icon';
+
+  return 'gfswave';
+}
+
 export async function getSurfConditions(params: {
   lat: number;
   lon: number;
@@ -158,8 +184,9 @@ export async function getSurfConditions(params: {
   idealWindDirection?: number;
   bestMonths: number[];
   flightPrice: number;
+  regionSlug?: string;
 }): Promise<SurfConditions> {
-  const { lat, lon, idealSwellDirection, idealWindDirection, bestMonths } = params;
+  const { lat, lon, idealSwellDirection, idealWindDirection, bestMonths, regionSlug } = params;
   const currentMonth = new Date().getMonth() + 1;
   const isInSeason = bestMonths.includes(currentMonth);
 
@@ -171,11 +198,11 @@ export async function getSurfConditions(params: {
         { next: { revalidate: 1800 } }
       ),
       fetch(
-        `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&current=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period&daily=wave_height_max,wave_period_max&length_unit=imperial&forecast_days=10&timezone=auto&models=ecmwf_wam`,
+        `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&current=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period&daily=wave_height_max,wave_direction_dominant,wave_period_max,swell_wave_height_max,swell_wave_period_max&length_unit=imperial&forecast_days=10&timezone=auto&models=ecmwf_wam`,
         { next: { revalidate: 1800 } }
       ),
       fetch(
-        `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&current=wave_height,wave_direction,wave_period,swell_wave_height&length_unit=imperial&forecast_days=10&timezone=auto&models=ncep_gfswave025`,
+        `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&current=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period&daily=wave_height_max,wave_direction_dominant,wave_period_max,swell_wave_height_max,swell_wave_period_max&length_unit=imperial&forecast_days=10&timezone=auto&models=ncep_gfswave025`,
         { next: { revalidate: 1800 } }
       ),
       fetch(
@@ -265,8 +292,28 @@ export async function getSurfConditions(params: {
     const seasonScore = isInSeason ? 10 : 0;
     const overallScore = Math.round(heightScore + periodScore + dirScore + windScore + seasonScore);
 
-    // Build 10-day outlook
-    const daily = icon.daily ?? {};
+    // Build 10-day outlook using the primary model for this region
+    const primaryModel = getPrimaryMarineModel(regionSlug);
+    const primaryResponse =
+      primaryModel === 'gfswave' ? gfs :
+      primaryModel === 'ecmwf_wam' ? ecmwf :
+      icon;
+    const daily = primaryResponse?.daily ?? {};
+
+    // Cross-check: warn when primary model's peak diverges significantly from other models
+    const iconPeak = Math.max(...(icon?.daily?.wave_height_max ?? [0]));
+    const gfsPeak = Math.max(...(gfs?.daily?.wave_height_max ?? [0]));
+    const ecmwfPeak = Math.max(...(ecmwf?.daily?.wave_height_max ?? [0]));
+    const primaryPeak =
+      primaryModel === 'gfswave' ? gfsPeak :
+      primaryModel === 'ecmwf_wam' ? ecmwfPeak :
+      iconPeak;
+    const otherPeaks = [iconPeak, gfsPeak, ecmwfPeak].filter(p => p > 0);
+    const meanOtherPeak = otherPeaks.length > 0 ? otherPeaks.reduce((a, b) => a + b, 0) / otherPeaks.length : 0;
+    if (primaryPeak > 0 && meanOtherPeak > 0 && Math.abs(primaryPeak - meanOtherPeak) / primaryPeak > 0.5) {
+      console.warn(`[forecast disagreement] regionSlug=${regionSlug ?? 'unknown'}: primary(${primaryModel})=${primaryPeak.toFixed(1)}ft, ensemble mean=${meanOtherPeak.toFixed(1)}ft, ICON=${iconPeak.toFixed(1)}, GFS=${gfsPeak.toFixed(1)}, ECMWF=${ecmwfPeak.toFixed(1)}`);
+    }
+
     const outlook: DayOutlook[] = [];
     const today = new Date();
 

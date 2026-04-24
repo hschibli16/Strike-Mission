@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import type { Spot } from '../spots';
+import type { UnifiedConditions } from '../lib/conditions/unified';
 
 const WorldMap = dynamic(() => import('./WorldMap'), {
   ssr: false,
@@ -36,6 +37,7 @@ interface Props {
   regions: RegionData[];
   spotCountByRegion: Record<string, number>;
   firingSpots: Spot[];
+  firingConditions: UnifiedConditions[];
   powderSpots: Spot[];
   allSpots: Spot[];
 }
@@ -63,15 +65,7 @@ const BTN_ACTIVE: React.CSSProperties = {
   color: '#0a0808',
 };
 
-function firingTag(spot: Spot): { text: string; color: string } {
-  const inSeason = spot.bestMonths.includes(CURRENT_MONTH);
-  const hasBuoy = !!spot.buoyId;
-  if (inSeason && hasBuoy) return { text: 'In season · Tracked', color: '#4ade80' };
-  if (inSeason) return { text: 'In season', color: '#fbbf24' };
-  return { text: 'Off-season', color: '#6b6560' };
-}
-
-export default function GuideExplorer({ regions, spotCountByRegion, firingSpots, powderSpots, allSpots }: Props) {
+export default function GuideExplorer({ regions, spotCountByRegion, firingSpots, firingConditions, powderSpots, allSpots }: Props) {
   const [mode, setMode] = useState<Mode>('all');
   const [view, setView] = useState<View>('grid');
 
@@ -156,9 +150,34 @@ export default function GuideExplorer({ regions, spotCountByRegion, firingSpots,
                 Best surf conditions across our tracked spots right now
               </div>
               <div className="firing-strip">
-                {firingSpots.map(spot => {
-                  const tag = firingTag(spot);
+                {firingConditions.map((cond) => {
+                  const spot = cond.spot;
                   const regionName = regionNameBySlug[spot.regionSlug] ?? spot.location;
+
+                  const verdictColor =
+                    cond.verdict === 'FIRING' ? '#4ade80' :
+                    cond.verdict === 'GOOD' ? '#86efac' :
+                    cond.verdict === 'FAIR' ? '#fbbf24' :
+                    '#6b6560';
+
+                  const verdictLabel =
+                    cond.verdict === 'FIRING' ? 'FIRING' :
+                    cond.verdict === 'GOOD' ? 'GOOD' :
+                    cond.verdict === 'FAIR' ? 'FAIR' :
+                    cond.verdict === 'BLOWN_OUT' ? 'BLOWN OUT' :
+                    cond.verdict === 'SMALL' ? 'SMALL' :
+                    'FLAT';
+
+                  const confidenceLabel =
+                    cond.confidence === 'high' ? 'HIGH CONFIDENCE' :
+                    cond.confidence === 'medium' ? 'MEDIUM CONFIDENCE' :
+                    'LOW CONFIDENCE';
+
+                  const confidenceColor =
+                    cond.confidence === 'high' ? '#4ade80' :
+                    cond.confidence === 'medium' ? '#fbbf24' :
+                    '#6b6560';
+
                   return (
                     <Link key={spot.slug} href={`/spot/${spot.slug}`} className="firing-card">
                       <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b6560', margin: '0 0 8px 0' }}>
@@ -170,17 +189,17 @@ export default function GuideExplorer({ regions, spotCountByRegion, firingSpots,
                       <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b6560', margin: '4px 0 12px 0' }}>
                         {spot.location}
                       </div>
-                      <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 'bold', color: tag.color }}>
-                        {tag.text}
+                      <div style={{ fontSize: '12px', color: '#f0ebe0', marginBottom: '8px', fontFamily: "'Georgia', serif" }}>
+                        {cond.estimatedBreakHeightFt?.toFixed(1) ?? '—'}ft
+                        {cond.periodS != null && ` @ ${cond.periodS.toFixed(0)}s`}
+                        {cond.windSpeedMph != null && ` · ${Math.round(cond.windSpeedMph)}mph wind`}
                       </div>
-                      {spot.tagline && (
-                        <div style={{
-                          fontSize: '12px', fontStyle: 'italic', color: '#6b6560', marginTop: '8px',
-                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                        }}>
-                          {spot.tagline}
-                        </div>
-                      )}
+                      <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: verdictColor }}>
+                        {verdictLabel}
+                      </div>
+                      <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', color: confidenceColor, marginTop: '4px', opacity: 0.7 }}>
+                        {confidenceLabel}
+                      </div>
                     </Link>
                   );
                 })}
