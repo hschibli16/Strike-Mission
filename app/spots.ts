@@ -1973,8 +1973,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Winter sessions require 6mm hooded suit, 7mm boots and mittens. Not optional. Respect the local crew.', 'Lawrencetown is committed surf — don\'t expect warm water.', 'Check local forecast constantly; Atlantic storms change daily.'],
-    heroImage: '',
-    heroImage: '',
   },
   {
     slug: 'narragansett',
@@ -2020,7 +2018,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Point break gets crowded with locals — beach break has more room.', 'Paid parking in summer, free in the off-season.', 'Full surf infrastructure — rentals, lessons, shops on town center.'],
-    heroImage: '',
   },
   {
     slug: 'ruggles',
@@ -2064,7 +2061,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Not a beginner wave.', 'Know the rocks, know the locals, earn your waves.', 'Best access via the Cliff Walk.', 'Time your trip with hurricane season (Aug-Oct typically).'],
-    heroImage: '',
   },
   {
     slug: 'nauset-beach',
@@ -2108,7 +2104,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Long walks to find the best peaks — wear good shoes.', 'Seals are common — and so are their predators (sharks). Stay aware and in groups.', 'Sandbars reshape constantly — conditions vary wildly day-to-day.'],
-    heroImage: '',
   },
   {
     slug: 'montauk',
@@ -2154,7 +2149,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Ditch gets crowded — explore the lesser-known beaches like Turtles, Poles, or Shagwong for space.', 'Rock hazards around the point — know the exit.', 'Shops and food infrastructure in downtown Montauk.'],
-    heroImage: '',
   },
   // ── US MID-ATLANTIC / SOUTHEAST ──
   {
@@ -2199,7 +2193,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Subway access via the A train — bring your board on the train, it\'s accepted.', 'Beach 90th is the main hub for surfers.', 'Scrappy but soulful vibe — respect the local community.'],
-    heroImage: '',
   },
   {
     slug: 'long-beach-ny',
@@ -2243,7 +2236,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Summer surf permit required June-September.', 'Off-season has no restrictions and fewer crowds.', 'Multiple jetties create variety — explore different peaks.'],
-    heroImage: '',
   },
   {
     slug: 'manasquan',
@@ -2287,7 +2279,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Tight lineup at the jetty — heavy locals.', 'Beach break on either side is more open for visitors.', 'Historically important wave in East Coast surfing.'],
-    heroImage: '',
   },
   {
     slug: 'lavallette',
@@ -2331,7 +2322,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Residential beach — respect the parking and access rules.', 'Quieter alternative to Seaside.', 'Jetties create organized peaks.'],
-    heroImage: '',
   },
   {
     slug: 'ocean-city-md',
@@ -2375,7 +2365,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Inlet is the go-to when it\'s big.', 'Summer has permit requirements for surfing; off-season is unrestricted.', 'Full boardwalk infrastructure available.'],
-    heroImage: '',
   },
   {
     slug: 'virginia-beach',
@@ -2419,7 +2408,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['ECSC in August is a can\'t-miss East Coast event.', 'Rudee Inlet gets crowded on swell days.', 'Deepest surf culture on the East Coast.'],
-    heroImage: '',
   },
   {
     slug: 'buxton',
@@ -2463,7 +2451,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['The Lighthouse is the flagship but has strong currents.', 'Explore the beaches south toward Frisco for uncrowded peaks.', 'Hurricane season (Aug-Oct) brings the best world-class swell.'],
-    heroImage: '',
   },
   {
     slug: 'nags-head',
@@ -2507,7 +2494,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Jennette\'s Pier has surf webcams and is the center of the local surf scene.', 'More accessible and developed than southern OBX.', 'Sandbars reshape constantly with swell windows.'],
-    heroImage: '',
   },
   {
     slug: 'folly-beach',
@@ -2551,7 +2537,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['The Washout gets crowded — walk north along the beach to find cleaner peaks when it\'s firing.', 'Warmer water than New England.', 'Full town infrastructure and Charleston day-trip option.'],
-    heroImage: '',
   },
   {
     slug: 'tybee-island',
@@ -2595,7 +2580,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Flat most days — time your visit with a named storm or a solid nor\'easter forecast.', 'Wide continental shelf dampens swell energy.', 'Long, clean, uncrowded waves when swell does arrive.'],
-    heroImage: '',
   },
   {
     slug: 'cocoa-beach',
@@ -2639,7 +2623,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Flat most summer days — fall brings the best conditions.', 'Ron Jon is open 24/7 for forgotten wax.', 'Year-round rideable waves, cultural hub of Florida surfing.'],
-    heroImage: '',
   },
   {
     slug: 'sebastian-inlet',
@@ -2683,7 +2666,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['First Peak is heavy locals — earn your waves.', 'Second Peak is more welcoming for visitors.', 'Best wave in Florida.', 'Known for generations of Florida surfer development.'],
-    heroImage: '',
   },
   // ── CARIBBEAN ──
   {
@@ -2729,7 +2711,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Trade winds are almost always offshore — the main challenge is finding the right swell window.', 'December-February is peak winter swell season.', 'Multiple breaks for different skill levels.', 'Warm Caribbean water, full town infrastructure.'],
-    heroImage: '',
   },
   // ── MORE ATLANTIC CANADA ──
   {
@@ -2774,7 +2755,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['30-minute drive from Halifax.', 'Less crowded than Lawrencetown with similar quality on the right day.', 'Remote provincial park feel.', 'Long sand beach with multiple peaks.'],
-    heroImage: '',
   },
   {
     slug: 'ogunquit',
@@ -2818,7 +2798,6 @@ export const ALL_SPOTS: Spot[] = [
       ]
     },
     localTips: ['Parking is painful in summer — go in the off-season for empty beaches and better waves.', 'Quieter alternative to NH beaches.', 'Strong local scene.', '3-mile long sandbar with consistent peaks.'],
-    heroImage: '',
   },
   {
     slug: 'anchor-point',
