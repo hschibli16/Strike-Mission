@@ -1,5 +1,7 @@
 'use client';
 
+import BookThisWeekButton from './BookThisWeekButton';
+
 export type BestWindow = {
   dayIndex: number;
   label: string;
@@ -17,6 +19,9 @@ type Props = {
   verdict: string;
   summary: string;
   isBookable: boolean;
+  destinationAirportCode: string;
+  bestWindowStart: Date;
+  bestWindowEnd: Date;
 };
 
 function verdictColor(label: string): string {
@@ -35,6 +40,9 @@ export default function StrikeVerdictHero({
   verdict,
   summary,
   isBookable,
+  destinationAirportCode,
+  bestWindowStart,
+  bestWindowEnd,
 }: Props) {
   const color = verdictColor(verdict);
 
@@ -67,20 +75,13 @@ export default function StrikeVerdictHero({
       </div>
       {/* CTA buttons */}
       <div className="verdict-cta-row" style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '12px' }}>
-        <button
-          onClick={() => console.log('Book this week')}
-          disabled={!isBookable}
-          style={{
-            display: 'inline-block',
-            padding: '14px 32px', fontFamily: "'Georgia', serif", fontSize: '14px',
-            letterSpacing: '0.1em', textTransform: 'uppercase',
-            background: '#f0ebe0', color: '#0a0808', border: 'none',
-            cursor: !isBookable ? 'not-allowed' : 'pointer',
-            opacity: !isBookable ? 0.4 : 1,
-          }}
-        >
-          Book this week
-        </button>
+        <BookThisWeekButton
+          destinationAirportCode={destinationAirportCode}
+          spotName={spotName}
+          bestWindowStartDate={bestWindowStart}
+          bestWindowEndDate={bestWindowEnd}
+          isBookable={isBookable}
+        />
         <button
           onClick={() => console.log('Set strike alert')}
           style={{

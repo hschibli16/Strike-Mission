@@ -150,16 +150,6 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
   const tripCost5Day = spot.flightPrice + (spot.hotelPrice * 5);
   const tripCost7Day = spot.flightPrice + (spot.hotelPrice * 7);
 
-  function getGoogleFlightsUrl() {
-    const today = new Date();
-    const friday = new Date(today);
-    friday.setDate(today.getDate() + ((5 - today.getDay() + 7) % 7 || 7));
-    const sunday = new Date(friday);
-    sunday.setDate(friday.getDate() + 9);
-    const fmt = (d: Date) => d.toISOString().split('T')[0].replace(/-/g, '');
-    return `https://www.google.com/flights/#search;f=JFK;t=${spot!.airportCode};d=${fmt(friday)};r=${fmt(sunday)};tt=r`;
-  }
-
   const heroImage = isSurf
     ? 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1800&q=80'
     : 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1800&q=80';
@@ -199,12 +189,40 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
       label: best.dayLabel,
       date: dateStr,
       height: best.waveHeightFt
-        ? `${(parseFloat(best.waveHeightFt) * (isSurf ? (spot.refractionCoefficient ?? 1.0) : 1.0)).toFixed(1)}ft`
+        ? `${parseFloat(best.waveHeightFt).toFixed(1)}ft`
         : best.snowIn ? `${best.snowIn}"` : '—',
       period: best.periodSeconds ? ` @ ${best.periodSeconds}s` : best.tempHighF ? ` · ${best.tempHighF}°F` : '',
       condLabel: best.label ?? verdictLabel,
     };
   }
+
+  const bestWindowStart = (() => {
+    if (bestWindow) {
+      const d = new Date();
+      d.setHours(12, 0, 0, 0);
+      d.setDate(d.getDate() + (bestWindow.dayIndex - 1));
+      d.setDate(d.getDate() - 1);
+      return d;
+    }
+    const fallback = new Date();
+    fallback.setHours(12, 0, 0, 0);
+    fallback.setDate(fallback.getDate() + 3);
+    return fallback;
+  })();
+
+  const bestWindowEnd = (() => {
+    if (bestWindow) {
+      const d = new Date();
+      d.setHours(12, 0, 0, 0);
+      d.setDate(d.getDate() + (bestWindow.dayIndex - 1));
+      d.setDate(d.getDate() + 3);
+      return d;
+    }
+    const fallback = new Date();
+    fallback.setHours(12, 0, 0, 0);
+    fallback.setDate(fallback.getDate() + 7);
+    return fallback;
+  })();
 
   return (
     <main style={{ fontFamily: "'Georgia', serif", background: '#0a0808', minHeight: '100vh', color: '#f0ebe0' }}>
@@ -275,6 +293,9 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
               }
               summary={conditions?.verdict ?? ''}
               isBookable={isBookable}
+              destinationAirportCode={spot.airportCode ?? 'LAX'}
+              bestWindowStart={bestWindowStart}
+              bestWindowEnd={bestWindowEnd}
             />
           </div>
 
@@ -1198,14 +1219,6 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
           {/* BOOK CTA */}
           <div style={{ padding: '32px' }}>
-            <a href={getGoogleFlightsUrl()} target="_blank" rel="noopener noreferrer" style={{
-              display: 'block', padding: '18px', background: '#f0ebe0',
-              color: '#0a0808', textDecoration: 'none', fontSize: '12px', fontWeight: 'bold',
-              letterSpacing: '3px', textTransform: 'uppercase', textAlign: 'center' as const,
-              marginBottom: '12px',
-            }}>
-              Search Flights →
-            </a>
             <a href={`/guide`} style={{
               display: 'block', padding: '14px', background: 'transparent',
               border: '1px solid #2a2520', color: '#4a4540',

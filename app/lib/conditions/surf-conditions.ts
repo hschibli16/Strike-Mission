@@ -293,11 +293,36 @@ export async function getSurfConditions(params: {
     const overallScore = Math.round(heightScore + periodScore + dirScore + windScore + seasonScore);
 
     // Build 10-day outlook using the primary model for this region
-    const primaryModel = getPrimaryMarineModel(regionSlug);
-    const primaryResponse =
+    function isDailyUsable(response: any): boolean {
+      const heights = response?.daily?.wave_height_max;
+      if (!Array.isArray(heights) || heights.length === 0) return false;
+      return heights.some((h: number) => typeof h === 'number' && h > 0.5);
+    }
+
+    let primaryModel = getPrimaryMarineModel(regionSlug);
+    let primaryResponse =
       primaryModel === 'gfswave' ? gfs :
       primaryModel === 'ecmwf_wam' ? ecmwf :
       icon;
+
+    // Fallback: if primary returned no useful data, try the others in order
+    if (!isDailyUsable(primaryResponse)) {
+      const fallbacks = [
+        { model: 'icon' as const, response: icon },
+        { model: 'gfswave' as const, response: gfs },
+        { model: 'ecmwf_wam' as const, response: ecmwf },
+      ].filter(f => f.model !== primaryModel);
+
+      for (const fb of fallbacks) {
+        if (isDailyUsable(fb.response)) {
+          console.warn(`[forecast fallback] regionSlug=${regionSlug ?? 'unknown'} lat=${lat} lon=${lon}: primary(${primaryModel}) returned no usable daily wave_height_max, falling back to ${fb.model}`);
+          primaryModel = fb.model;
+          primaryResponse = fb.response;
+          break;
+        }
+      }
+    }
+
     const daily = primaryResponse?.daily ?? {};
 
     // Cross-check: warn when primary model's peak diverges significantly from other models
